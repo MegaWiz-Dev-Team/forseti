@@ -1,0 +1,36 @@
+# ⚖️ Forseti Example: Login Test Suite
+# ทดสอบระบบ Login ของ application
+
+name: "Login Test Suite"
+base_url: "https://practicetestautomation.com/practice-test-login/"
+phase: "SIT"
+
+metadata:
+  author: "Forseti"
+  version: "1.0"
+  description: "ทดสอบฟังก์ชัน Login ทั้ง success และ failure cases"
+
+scenarios:
+  - name: "Login สำเร็จด้วย username/password ที่ถูกต้อง"
+    tags: ["login", "happy-path"]
+    steps:
+      - action: "กรอก username ว่า student"
+      - action: "กรอก password ว่า Password123"
+      - action: "กดปุ่ม Submit"
+    expected: "เห็นหน้าที่มีข้อความ Congratulations หรือ successfully logged in"
+
+  - name: "Login ไม่สำเร็จด้วย password ผิด"
+    tags: ["login", "negative"]
+    steps:
+      - action: "กรอก username ว่า student"
+      - action: "กรอก password ว่า wrongpassword"
+      - action: "กดปุ่ม Submit"
+    expected: "เห็นข้อความ error ว่า Your password is invalid"
+
+  - name: "Login ไม่สำเร็จด้วย username ผิด"
+    tags: ["login", "negative"]
+    steps:
+      - action: "กรอก username ว่า incorrectUser"
+      - action: "กรอก password ว่า Password123"
+      - action: "กดปุ่ม Submit"
+    expected: "เห็นข้อความ error ว่า Your username is invalid"

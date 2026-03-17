@@ -1,0 +1,189 @@
+# Cloud Super Hero — E2E API Test Script
+# ⚖️ Forseti YAML Test Script
+# Target: cloud-super-hero-dev (ห้าม production)
+# Reference: SI-04_E2E.md (52 test cases, 20 scenarios)
+
+name: "Cloud Super Hero E2E — API Tests"
+base_url: "http://localhost:8080"
+phase: SIT
+
+metadata:
+  project: cloud-super-hero-dev
+  batch_id: DEV-BATCH-01
+  program_id: dev-test-program
+  admin_email: paripol@megawiz.co
+  student_email: paripol.toopiroh@gmail.com
+  mock_students:
+    - student-mock-01@test.invalid
+    - student-mock-02@test.invalid
+    - student-mock-03@test.invalid
+
+scenarios:
+  # ── Scenario 1: Student Registration ──
+  - name: "TC_E2E_01 — Student Email Check (Existing)"
+    steps:
+      - action: "POST /api/student/check-email with {email: paripol.toopiroh@gmail.com}"
+    expected: "Status 200, body contains exists=true and batches includes DEV-BATCH-01"
+    tags: [registration, student, smoke]
+
+  - name: "TC_E2E_02 — Student Email Check (Not Found)"
+    steps:
+      - action: "POST /api/student/check-email with {email: nobody@test.invalid}"
+    expected: "Status 200, body contains exists=false"
+    tags: [registration, student]
+
+  # ── Scenario 2: Student Profile ──
+  - name: "TC_E2E_07 — Get Student Profile"
+    steps:
+      - action: "GET /api/student/paripol.toopiroh@gmail.com/profile"
+    expected: "Status 200, body contains nameTh and enrollments"
+    tags: [profile, student]
+
+  - name: "TC_E2E_08 — Update Profile Phone"
+    steps:
+      - action: "POST /api/student/update-profile with {email: paripol.toopiroh@gmail.com, phone: '0891234567'}"
+    expected: "Status 200, body contains ok=true"
+    tags: [profile, student]
+
+  - name: "TC_E2E_09 — Accept PDPA Consent"
+    steps:
+      - action: "POST /api/student/consent with {email: paripol.toopiroh@gmail.com}"
+    expected: "Status 200, body contains ok=true"
+    tags: [profile, student, consent]
+
+  # ── Scenario 3: DISC Test ──
+  - name: "TC_E2E_11 — Save DISC Result"
+    steps:
+      - action: "POST /api/student/disc with {email: paripol.toopiroh@gmail.com, batchId: DEV-BATCH-01, type: D, label: Dominant, scores: {D:45, I:20, S:20, C:15}, numQuestions: 20}"
+    expected: "Status 200, body contains ok=true"
+    tags: [disc, student]
+
+  - name: "TC_E2E_12 — Invalid DISC Type"
+    steps:
+      - action: "POST /api/student/disc with {email: paripol.toopiroh@gmail.com, batchId: DEV-BATCH-01, type: X}"
+    expected: "Status 400, body contains error"
+    tags: [disc, student, validation]
+
+  # ── Scenario 4: Quiz ──
+  - name: "TC_E2E_13 — Load Quiz Config"
+    steps:
+      - action: "GET /api/quiz/DEV-BATCH-01/preTest"
+    expected: "Status 200 or 404 (depending on quiz configured)"
+    tags: [quiz, student]
+
+  # ── Scenario 5: Attendance ──
+  - name: "TC_E2E_21 — Get Attendance Report"
+    steps:
+      - action: "GET /api/admin/batch/DEV-BATCH-01/attendance with admin auth"
+    expected: "Status 200, returns attendance data"
+    tags: [attendance, admin]
+
+  # ── Scenario 6: Student Feedback ──
+  - name: "TC_E2E_38 — Submit Feedback"
+    steps:
+      - action: "POST /api/student/feedback with {email: paripol.toopiroh@gmail.com, batchId: DEV-BATCH-01, overall: 5, instructor: 5, content: 4, comment: 'ยอดเยี่ยมมาก'}"
+    expected: "Status 200, body contains ok=true"
+    tags: [feedback, student]
+
+  - name: "TC_E2E_39 — Get Feedback Report"
+    steps:
+      - action: "GET /api/admin/batch/DEV-BATCH-01/feedback with admin auth"
+    expected: "Status 200, returns feedback entries"
+    tags: [feedback, admin]
+
+  # ── Scenario 7: Admin Batch Management ──
+  - name: "TC_E2E_42 — List Batches"
+    steps:
+      - action: "GET /api/admin/batches with admin auth"
+    expected: "Status 200, returns list of batches"
+    tags: [batch, admin, smoke]
+
+  - name: "TC_E2E_43 — Get Batch Detail"
+    steps:
+      - action: "GET /api/admin/batch/DEV-BATCH-01 with admin auth"
+    expected: "Status 200, returns batch data with enrollments"
+    tags: [batch, admin]
+
+  - name: "TC_E2E_44 — Batch Not Found"
+    steps:
+      - action: "GET /api/admin/batch/NONEXISTENT with admin auth"
+    expected: "Status 404"
+    tags: [batch, admin, negative]
+
+  # ── Scenario 8: Program Management ──
+  - name: "TC_E2E_45 — List Programs"
+    steps:
+      - action: "GET /api/programs"
+    expected: "Status 200, returns list of programs"
+    tags: [program, smoke]
+
+  - name: "TC_E2E_46 — Update Program emailConfig"
+    steps:
+      - action: "PUT /api/programs/dev-test-program with admin auth and body {emailConfig: {brandName: 'My Hero DEV Test', footerText: 'Testing Footer'}}"
+    expected: "Status 200, body contains ok=true"
+    tags: [program, admin]
+
+  - name: "TC_E2E_47 — Get Program Materials"
+    steps:
+      - action: "GET /api/programs/dev-test-program/materials with admin auth"
+    expected: "Status 200, returns materials data"
+    tags: [program, admin]
+
+  # ── Scenario 9: Email Dry Runs ──
+  - name: "TC_E2E_28 — Invitation Dry Run"
+    steps:
+      - action: "POST /api/admin/batch/DEV-BATCH-01/send-invitations with admin auth and body {dryRun: true}"
+    expected: "Status 200, dryRun=true in response"
+    tags: [email, admin, dry-run]
+
+  - name: "TC_E2E_30 — Reminder Dry Run"
+    steps:
+      - action: "POST /api/admin/batch/DEV-BATCH-01/send-reminders with admin auth and body {dryRun: true}"
+    expected: "Status 200, shows incomplete students"
+    tags: [email, admin, dry-run]
+
+  - name: "TC_E2E_32 — Score Announcement Dry Run"
+    steps:
+      - action: "POST /api/admin/batch/DEV-BATCH-01/announce-scores with admin auth and body {dryRun: true}"
+    expected: "Status 200, shows students with scores"
+    tags: [email, admin, dry-run]
+
+  - name: "TC_E2E_34 — Certificate Dry Run"
+    steps:
+      - action: "POST /api/admin/batch/DEV-BATCH-01/send-certificates with admin auth and body {dryRun: true}"
+    expected: "Status 200, shows eligible students"
+    tags: [email, admin, dry-run]
+
+  # ── Scenario 10: Email Reset ──
+  - name: "TC_E2E_36 — Reset Invitation Email Status"
+    steps:
+      - action: "POST /api/admin/batch/DEV-BATCH-01/reset-email with admin auth and body {type: invitation, emails: [paripol.toopiroh@gmail.com]}"
+    expected: "Status 200, ok=true"
+    tags: [email, admin, reset]
+
+  # ── Scenario 11: Grading ──
+  - name: "TC_E2E_26 — Manual Grade"
+    steps:
+      - action: "POST /api/admin/grade with admin auth and body {email: paripol.toopiroh@gmail.com, batchId: DEV-BATCH-01, scores: {attendance: 10, homework: {total: 30}, quiz: {total: 20}, total: 60}}"
+    expected: "Status 200, ok=true"
+    tags: [grading, admin]
+
+  # ── Scenario 12: Public Registration ──
+  - name: "TC_E2E_49 — Public Self-Registration"
+    steps:
+      - action: "POST /api/public/register with {email: new-student@test.invalid, nameTh: นักเรียนใหม่, phone: '0899998888', batchId: DEV-BATCH-01}"
+    expected: "Status 200, ok=true"
+    tags: [registration, public]
+
+  # ── Scenario 13: Security ──
+  - name: "TC_E2E_50 — Unauthorized Admin Access"
+    steps:
+      - action: "GET /api/admin/batches without auth header"
+    expected: "Status 401"
+    tags: [security, negative]
+
+  - name: "TC_E2E_52 — Invalid Batch ID"
+    steps:
+      - action: "GET /api/admin/batch/NONEXISTENT with admin auth"
+    expected: "Status 404"
+    tags: [security, negative]

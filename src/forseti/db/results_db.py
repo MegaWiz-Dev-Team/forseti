@@ -108,11 +108,17 @@ class ResultsDB:
         self.conn.commit()
         return cursor.lastrowid
 
-    def get_runs(self, limit: int = 20) -> list[dict]:
-        """Get all test runs, newest first."""
-        rows = self.conn.execute(
-            "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,)
-        ).fetchall()
+    def get_runs(self, limit: int = 20, suite: str | None = None) -> list[dict]:
+        """Get all test runs, newest first. Optionally filter by suite."""
+        if suite:
+            rows = self.conn.execute(
+                "SELECT * FROM runs WHERE suite_name = ? ORDER BY id DESC LIMIT ?",
+                (suite, limit),
+            ).fetchall()
+        else:
+            rows = self.conn.execute(
+                "SELECT * FROM runs ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
         return [dict(r) for r in rows]
 
     def get_run(self, run_id: int) -> dict | None:
@@ -132,15 +138,30 @@ class ResultsDB:
         run["scenarios"] = [dict(s) for s in scenarios]
         return run
 
-    def get_trend(self, limit: int = 10) -> list[dict]:
-        """Get pass rate trend (newest first)."""
-        rows = self.conn.execute(
-            """SELECT id, suite_name, pass_rate, total, passed, failed,
-               duration_ms, created_at
-               FROM runs ORDER BY id DESC LIMIT ?""",
-            (limit,),
-        ).fetchall()
+    def get_trend(self, limit: int = 10, suite: str | None = None) -> list[dict]:
+        """Get pass rate trend (newest first). Optionally filter by suite."""
+        if suite:
+            rows = self.conn.execute(
+                """SELECT id, suite_name, pass_rate, total, passed, failed,
+                   duration_ms, created_at
+                   FROM runs WHERE suite_name = ? ORDER BY id DESC LIMIT ?""",
+                (suite, limit),
+            ).fetchall()
+        else:
+            rows = self.conn.execute(
+                """SELECT id, suite_name, pass_rate, total, passed, failed,
+                   duration_ms, created_at
+                   FROM runs ORDER BY id DESC LIMIT ?""",
+                (limit,),
+            ).fetchall()
         return [dict(r) for r in rows]
+
+    def get_suites(self) -> list[str]:
+        """Get distinct suite names."""
+        rows = self.conn.execute(
+            "SELECT DISTINCT suite_name FROM runs ORDER BY suite_name"
+        ).fetchall()
+        return [r["suite_name"] for r in rows]
 
     def close(self) -> None:
         """Close the database connection."""

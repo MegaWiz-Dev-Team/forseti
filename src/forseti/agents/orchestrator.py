@@ -6,6 +6,7 @@ ADK-compatible design: runs scenarios sequentially, then reports.
 from __future__ import annotations
 
 import logging
+import os
 import time
 import re
 import json
@@ -14,6 +15,7 @@ from datetime import datetime
 import yaml
 
 from forseti.agents.reporter_agent import ReporterAgent
+from forseti.config import ProjectConfig
 from forseti.db.results_db import ResultsDB
 from forseti.models import (
     TestScript, TestScenario, TestPhase,
@@ -51,6 +53,24 @@ class ForsetiOrchestrator:
         self.reporter = ReporterAgent(db=db, report_dir=report_dir)
         self.admin_token: str | None = None
 
+    @classmethod
+    def from_project(
+        cls,
+        project: ProjectConfig,
+        db: ResultsDB,
+        report_dir: str = "reports",
+    ) -> ForsetiOrchestrator:
+        """Create orchestrator from a ProjectConfig."""
+        email = os.getenv(project.auth.email_env, "") if project.auth.email_env else ""
+        password = os.getenv(project.auth.password_env, "") if project.auth.password_env else ""
+        return cls(
+            base_url=project.base_url,
+            admin_email=email,
+            admin_password=password,
+            db=db,
+            report_dir=report_dir,
+        )
+
     def load_yaml_scenarios(self, yaml_path: str) -> list[dict]:
         """Load scenarios from YAML test script.
 
@@ -66,6 +86,12 @@ class ForsetiOrchestrator:
                 scenarios.append(parsed)
 
         return scenarios
+
+    def get_suite_name(self, yaml_path: str) -> str:
+        """Read suite_name from YAML metadata."""
+        with open(yaml_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return data.get("suite_name", "Unknown Suite")
 
     def _parse_scenario(self, sc: dict) -> dict | None:
         """Parse a YAML scenario into executable format.
@@ -249,7 +275,7 @@ class ForsetiOrchestrator:
     ) -> TestSuiteResult:
         """Convert run results into TestSuiteResult for reporting."""
         script = TestScript(
-            name="Cloud Super Hero E2E",
+            name=self.get_suite_name(yaml_path),
             base_url=self.base_url,
             phase=TestPhase.SIT,
             scenarios=[],

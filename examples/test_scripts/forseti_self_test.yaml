@@ -1,0 +1,36 @@
+# ⚖️ Forseti Self-Test — Dashboard API E2E
+# Tests Forseti's own web dashboard endpoints
+# Target: http://localhost:5555
+
+suite_name: "Forseti Dashboard"
+
+scenarios:
+  - name: "Dashboard HTML"
+    method: GET
+    path: "/"
+    expected_status: 200
+    tags: [dashboard, smoke]
+
+  - name: "API — List Runs"
+    method: GET
+    path: "/api/runs"
+    expected_status: 200
+    tags: [api, runs]
+
+  - name: "API — Trend Data"
+    method: GET
+    path: "/api/trend"
+    expected_status: 200
+    tags: [api, trend]
+
+  - name: "API — Run Detail"
+    method: GET
+    path: "/api/runs/1"
+    expected_status: 200
+    tags: [api, detail]
+
+  - name: "API — Run Not Found"
+    method: GET
+    path: "/api/runs/99999"
+    expected_status: 404
+    tags: [api, negative]

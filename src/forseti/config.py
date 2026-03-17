@@ -89,3 +89,58 @@ class ForsetiConfig(BaseModel):
             config.github.repo = repo
 
         return config
+
+
+# ── Multi-Project Config (Sprint 04) ────────────────────────────────
+
+
+class AuthConfig(BaseModel):
+    """Authentication configuration per project."""
+
+    type: str = Field(default="none", description="Auth type: none, otp, bearer")
+    email_env: str = Field(default="", description="Env var for admin email")
+    password_env: str = Field(default="", description="Env var for admin password")
+    token_env: str = Field(default="", description="Env var for bearer token")
+    login_path: str = Field(default="/api/admin/login")
+    verify_path: str = Field(default="/api/admin/verify-otp")
+
+
+class ProjectConfig(BaseModel):
+    """Configuration for a single test project."""
+
+    base_url: str = Field(description="Target server base URL")
+    test_script: str = Field(description="Path to YAML test script")
+    auth: AuthConfig = Field(default_factory=AuthConfig)
+    github_repo: str = Field(default="", description="GitHub repo (owner/name)")
+
+
+def load_projects(yaml_path: str) -> dict[str, ProjectConfig]:
+    """Load project configurations from forseti.yaml.
+
+    Returns:
+        Dict mapping project name → ProjectConfig.
+    """
+    import yaml
+
+    with open(yaml_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    projects = {}
+    for name, cfg in data.get("projects", {}).items():
+        # Extract auth sub-config
+        auth_data = cfg.pop("auth", {})
+        auth = AuthConfig(**auth_data)
+
+        # Extract github repo
+        github_data = cfg.pop("github", {})
+        github_repo = github_data.get("repo", "")
+
+        projects[name] = ProjectConfig(
+            base_url=cfg["base_url"],
+            test_script=cfg["test_script"],
+            auth=auth,
+            github_repo=github_repo,
+        )
+
+    return projects
+

@@ -3,6 +3,8 @@
 # Target: cloud-super-hero-dev (ห้าม production)
 # Reference: SI-04_E2E.md (52 test cases, 20 scenarios)
 
+suite_name: "Cloud Super Hero E2E"
+
 name: "Cloud Super Hero E2E — API Tests"
 base_url: "http://localhost:8080"
 phase: SIT

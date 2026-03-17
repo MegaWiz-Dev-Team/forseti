@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 from forseti.db.results_db import ResultsDB
@@ -21,10 +21,19 @@ def index():
     return send_from_directory("web/dashboard", "index.html")
 
 
+@app.route("/api/suites")
+def api_suites():
+    db = get_db()
+    suites = db.get_suites()
+    db.close()
+    return jsonify(suites)
+
+
 @app.route("/api/runs")
 def api_runs():
+    suite = request.args.get("suite")
     db = get_db()
-    runs = db.get_runs(limit=50)
+    runs = db.get_runs(limit=50, suite=suite)
     db.close()
     return jsonify(runs)
 
@@ -41,8 +50,9 @@ def api_run_detail(run_id):
 
 @app.route("/api/trend")
 def api_trend():
+    suite = request.args.get("suite")
     db = get_db()
-    trend = db.get_trend(limit=20)
+    trend = db.get_trend(limit=20, suite=suite)
     db.close()
     return jsonify(trend)
 

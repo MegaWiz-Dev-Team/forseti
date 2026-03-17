@@ -1,10 +1,14 @@
-"""Auth Tools for API testing — Sprint 02.
+"""Auth Tools for API testing — Sprint 02 + Sprint 04 (auth plugins).
 
 Provides authentication for admin API access.
 """
 from __future__ import annotations
 
+import os
+
 import httpx
+
+from forseti.config import AuthConfig
 
 
 async def admin_login(base_url: str, email: str, password: str) -> dict:
@@ -60,3 +64,44 @@ def get_auth_headers(token: str) -> dict:
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
+
+
+# ── Auth Plugin Factory (Sprint 04) ────────────────────────────────
+
+
+def create_authenticator(auth_config: AuthConfig):
+    """Create an async authenticator function based on auth config.
+
+    Returns:
+        An async function: (base_url: str) → {"success", "token", "headers"}
+    """
+    if auth_config.type == "none":
+        async def _auth_none(base_url: str) -> dict:
+            return {"success": True, "token": None, "headers": {}}
+        return _auth_none
+
+    elif auth_config.type == "otp":
+        async def _auth_otp(base_url: str) -> dict:
+            email = os.getenv(auth_config.email_env, "")
+            password = os.getenv(auth_config.password_env, "")
+            result = await admin_login(base_url, email, password)
+            headers = get_auth_headers(result["token"]) if result.get("token") else {}
+            return {**result, "headers": headers}
+        return _auth_otp
+
+    elif auth_config.type == "bearer":
+        async def _auth_bearer(base_url: str) -> dict:
+            token = os.getenv(auth_config.token_env, "")
+            if not token:
+                return {"success": False, "token": None, "headers": {},
+                        "error": f"Missing env var: {auth_config.token_env}"}
+            return {
+                "success": True,
+                "token": token,
+                "headers": {"Authorization": f"Bearer {token}"},
+            }
+        return _auth_bearer
+
+    else:
+        raise ValueError(f"Unknown auth type: {auth_config.type}")
+

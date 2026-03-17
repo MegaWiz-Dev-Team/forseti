@@ -16,6 +16,7 @@ import yaml
 
 from forseti.agents.reporter_agent import ReporterAgent
 from forseti.config import ProjectConfig
+from forseti.config import BrowserConfig
 from forseti.db.results_db import ResultsDB
 from forseti.models import (
     TestScript, TestScenario, TestPhase,
@@ -106,12 +107,23 @@ class ForsetiOrchestrator:
         if "method" in sc and "path" in sc:
             return {
                 "name": name,
+                "type": sc.get("type", "api"),
                 "method": sc["method"],
                 "path": sc["path"],
                 "body": sc.get("body"),
                 "expected_status": sc.get("expected_status", 200),
                 "expected": sc.get("expected", ""),
                 "needs_auth": sc.get("needs_auth", "admin" in tags),
+                "tags": tags,
+                "db_verify": sc.get("db_verify"),
+            }
+
+        # UI scenario format
+        if sc.get("type") == "ui":
+            return {
+                "name": name,
+                "type": "ui",
+                "steps": sc.get("steps", []),
                 "tags": tags,
             }
 
@@ -133,6 +145,7 @@ class ForsetiOrchestrator:
 
         return {
             "name": name,
+            "type": "api",
             "method": method,
             "path": path,
             "body": body,
@@ -140,6 +153,7 @@ class ForsetiOrchestrator:
             "expected": expected,
             "needs_auth": needs_auth,
             "tags": tags,
+            "db_verify": sc.get("db_verify"),
         }
 
     def _parse_action(self, action: str) -> tuple[str, str, dict | None]:
@@ -178,6 +192,63 @@ class ForsetiOrchestrator:
         return method, path, body
 
     async def run_scenario(self, scenario: dict) -> dict:
+        """Run a single scenario (API or UI).
+
+        Returns:
+            {"name": str, "status": "pass"|"fail"|"error",
+             "duration_ms": int, "error": str | None}
+        """
+        if scenario.get("type") == "ui":
+            return await self._run_ui_scenario(scenario)
+        return await self._run_api_scenario(scenario)
+
+    async def _run_ui_scenario(self, scenario: dict) -> dict:
+        """Run a UI scenario via BrowserEngine + ActionExecutor."""
+        from forseti.browser.engine import BrowserEngine
+
+        name = scenario["name"]
+        steps = scenario.get("steps", [])
+        start = time.monotonic()
+
+        try:
+            config = BrowserConfig(headless=True)
+            engine = BrowserEngine(config)
+            await engine.start()
+
+            async with engine.session() as page:
+                for step_def in steps:
+                    action_type = step_def.get("action", "")
+                    selector = step_def.get("selector")
+                    value = step_def.get("value", "")
+
+                    # Resolve value for navigate
+                    if action_type == "navigate":
+                        url = value if value.startswith("http") else f"{self.base_url}{value}"
+                        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    elif action_type == "click":
+                        await page.locator(selector).click(timeout=30000)
+                    elif action_type == "type":
+                        await page.locator(selector).fill(value, timeout=30000)
+                    elif action_type == "assert_text":
+                        await page.get_by_text(value).wait_for(timeout=30000)
+                    elif action_type == "assert_element":
+                        await page.wait_for_selector(selector, timeout=30000)
+                    elif action_type == "wait":
+                        import asyncio as _asyncio
+                        await _asyncio.sleep(int(value) / 1000 if value else 1)
+
+            await engine.stop()
+
+            duration_ms = int((time.monotonic() - start) * 1000)
+            return {"name": name, "status": "pass",
+                    "duration_ms": duration_ms, "error": None}
+
+        except Exception as e:
+            duration_ms = int((time.monotonic() - start) * 1000)
+            return {"name": name, "status": "fail",
+                    "duration_ms": duration_ms, "error": str(e)}
+
+    async def _run_api_scenario(self, scenario: dict) -> dict:
         """Run a single API scenario.
 
         Returns:

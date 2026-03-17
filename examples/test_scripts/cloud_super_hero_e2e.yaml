@@ -29,8 +29,8 @@ scenarios:
     path: "/api/student/check-email"
     body:
       email: "nobody@test.invalid"
-    expected_status: 200
-    tags: [registration, student]
+    expected_status: 404
+    tags: [registration, student, negative]
 
   # ── Scenario 2: Student Profile ──
   - name: "TC_E2E_07 — Get Student Profile"
@@ -87,7 +87,7 @@ scenarios:
   # ── Scenario 4: Quiz ──
   - name: "TC_E2E_13 — Load Quiz Config"
     method: GET
-    path: "/api/quiz/DEV-BATCH-01/preTest"
+    path: "/api/quiz/DEV-BATCH-01/pretest"
     expected_status: 200
     tags: [quiz, student]
 
@@ -106,10 +106,9 @@ scenarios:
     body:
       email: "paripol.toopiroh@gmail.com"
       batchId: "DEV-BATCH-01"
-      overall: 5
-      instructor: 5
-      content: 4
-      comment: "ยอดเยี่ยมมาก"
+      rating: 5
+      nps: 9
+      comment: "E2E test — ยอดเยี่ยมมาก"
     expected_status: 200
     tags: [feedback, student]
 
@@ -224,13 +223,10 @@ scenarios:
     body:
       email: "paripol.toopiroh@gmail.com"
       batchId: "DEV-BATCH-01"
-      scores:
-        attendance: 10
-        homework:
-          total: 30
-        quiz:
-          total: 20
-        total: 60
+      assignmentId: "hw1"
+      score: 85
+      maxScore: 100
+      feedback: "E2E test grading — good work"
     expected_status: 200
     tags: [grading, admin]
 
@@ -240,9 +236,8 @@ scenarios:
     path: "/api/public/register"
     body:
       email: "new-student@test.invalid"
-      nameTh: "นักเรียนใหม่"
-      phone: "0899998888"
-      batchId: "DEV-BATCH-01"
+      name: "E2E นักเรียนใหม่"
+      batchId: "DEV-SP-BATCH"
     expected_status: 200
     tags: [registration, public]
 

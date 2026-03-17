@@ -70,27 +70,41 @@ class ForsetiOrchestrator:
         return scenarios
 
     def _parse_scenario(self, sc: dict) -> dict | None:
-        """Parse a YAML scenario into executable format."""
+        """Parse a YAML scenario into executable format.
+
+        Supports both structured format (method/path/body fields)
+        and legacy NL format (steps[0].action string).
+        """
         name = sc.get("name", "Unknown")
-        steps = sc.get("steps", [])
-        expected = sc.get("expected", "")
         tags = sc.get("tags", [])
 
+        # Structured format (preferred)
+        if "method" in sc and "path" in sc:
+            return {
+                "name": name,
+                "method": sc["method"],
+                "path": sc["path"],
+                "body": sc.get("body"),
+                "expected_status": sc.get("expected_status", 200),
+                "expected": sc.get("expected", ""),
+                "needs_auth": sc.get("needs_auth", "admin" in tags),
+                "tags": tags,
+            }
+
+        # Legacy NL format (fallback)
+        steps = sc.get("steps", [])
+        expected = sc.get("expected", "")
         if not steps:
             return None
 
         action = steps[0].get("action", "") if steps else ""
-
-        # Parse the NL action into method + path + body
         method, path, body = self._parse_action(action)
 
-        # Determine expected status from expected string
         expected_status = 200
         status_match = re.search(r"Status (\d+)", expected)
         if status_match:
             expected_status = int(status_match.group(1))
 
-        # Check if admin auth needed
         needs_auth = "admin auth" in action.lower() or "admin" in tags
 
         return {

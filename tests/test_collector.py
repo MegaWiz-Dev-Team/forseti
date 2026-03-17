@@ -1,9 +1,7 @@
 """Tests for Forseti result collector."""
 
-import json
 import pytest
 from datetime import datetime
-from pathlib import Path
 
 from forseti.models import (
     ScenarioResult,

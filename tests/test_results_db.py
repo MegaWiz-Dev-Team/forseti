@@ -2,10 +2,8 @@
 
 Red phase: Tests written before implementation.
 """
-import pytest
 import tempfile
 from pathlib import Path
-from datetime import datetime
 
 from forseti.db.results_db import ResultsDB
 

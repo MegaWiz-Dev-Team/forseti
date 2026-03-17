@@ -2,7 +2,6 @@
 
 Red phase: Tests written before implementation.
 """
-import pytest
 
 from forseti.tools.assert_tools import assert_status, assert_json_field
 

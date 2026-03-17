@@ -2,7 +2,6 @@
 
 Red phase: Tests written before implementation.
 """
-import pytest
 
 from forseti.agents.api_agent import create_api_test_agent
 

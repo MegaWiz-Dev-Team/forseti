@@ -5,7 +5,6 @@ from forseti.models import (
     ActionPlan,
     BrowserAction,
     ScenarioResult,
-    StepResult,
     TestPhase,
     TestScript,
     TestScenario,

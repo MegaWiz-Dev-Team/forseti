@@ -2,15 +2,13 @@
 
 Tests the agent that generates reports and creates GitHub issues after test runs.
 """
-import pytest
 import tempfile
 from pathlib import Path
 from datetime import datetime
-from unittest.mock import MagicMock, patch
 
 from forseti.agents.reporter_agent import ReporterAgent
 from forseti.models import (
-    TestScript, TestScenario, TestStep, TestStatus,
+    TestScript, TestScenario, TestStatus,
     TestSuiteResult, ScenarioResult, TestPhase,
 )
 from forseti.db.results_db import ResultsDB

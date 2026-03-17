@@ -26,7 +26,7 @@ class ISOReportGenerator:
         lines.append("")
         lines.append("| รายการ | รายละเอียด |")
         lines.append("|---|---|")
-        lines.append(f"| **เอกสาร** | SI-04 (Auto-generated) |")
+        lines.append("| **เอกสาร** | SI-04 (Auto-generated) |")
         lines.append(f"| **Test Suite** | {result.script.name} |")
         lines.append(f"| **Phase** | {result.script.phase.value} |")
         lines.append(f"| **Base URL** | {result.script.base_url} |")

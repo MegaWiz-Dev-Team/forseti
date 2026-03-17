@@ -1,8 +1,6 @@
 """Tests for Forseti YAML parser."""
 
 import pytest
-import tempfile
-from pathlib import Path
 
 from forseti.parser import parse_script, validate_script
 

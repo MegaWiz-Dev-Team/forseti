@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from pathlib import Path
 
 from pydantic import BaseModel, Field
 

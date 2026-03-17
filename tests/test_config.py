@@ -1,7 +1,5 @@
 """Tests for Forseti configuration."""
 
-import os
-import pytest
 
 from forseti.config import ForsetiConfig, LLMConfig, BrowserConfig, GitHubConfig
 

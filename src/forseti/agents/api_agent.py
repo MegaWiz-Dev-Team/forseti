@@ -7,7 +7,7 @@ Agent-like class that mirrors ADK's interface.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Callable
 
 from forseti.tools.http_tools import http_get, http_post, http_put
 from forseti.tools.assert_tools import assert_status, assert_json_field

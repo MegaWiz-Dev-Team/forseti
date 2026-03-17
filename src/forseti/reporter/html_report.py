@@ -6,9 +6,9 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, select_autoescape
 
-from forseti.models import TestSuiteResult, TestStatus
+from forseti.models import TestSuiteResult
 
 logger = logging.getLogger("forseti.reporter.html_report")
 

@@ -113,10 +113,10 @@ class ReporterAgent:
         )
 
         lines = [
-            f"## ⚖️ Forseti E2E Test Results",
-            f"",
-            f"| Metric | Value |",
-            f"|--------|-------|",
+            "## ⚖️ Forseti E2E Test Results",
+            "",
+            "| Metric | Value |",
+            "|--------|-------|",
             f"| Suite | {result.script.name} |",
             f"| Phase | {result.script.phase.value} |",
             f"| URL | {result.script.base_url} |",
@@ -125,9 +125,9 @@ class ReporterAgent:
             f"| ✅ Passed | {result.passed} |",
             f"| ❌ Failed | {result.failed} |",
             f"| ⚠️ Errors | {result.errors} |",
-            f"",
-            f"## Failed Scenarios",
-            f"",
+            "",
+            "## Failed Scenarios",
+            "",
         ]
 
         for sr in result.scenario_results:

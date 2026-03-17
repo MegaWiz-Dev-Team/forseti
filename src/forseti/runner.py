@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from datetime import datetime
@@ -133,7 +132,6 @@ class ForsetiRunner:
                     # Check assertion (expected result) if all steps passed
                     if all_steps_passed and scenario.expected:
                         logger.info(f"  🔍 Checking assertion: {scenario.expected}")
-                        page_content = await page.content()
                         page_text = await page.evaluate("() => document.body.innerText")
 
                         assertion = await self.llm.check_assertion(
@@ -186,7 +184,7 @@ class ForsetiRunner:
             sc_result.status = TestStatus.SKIP
             sc_result.finished_at = datetime.now()
             suite_result.scenario_results.append(sc_result)
-            logger.info(f"  ⏭️  Skipped (dry run)\n")
+            logger.info("  ⏭️  Skipped (dry run)\n")
 
         return suite_result
 

@@ -2,15 +2,14 @@
 
 Red phase: Tests written before implementation.
 """
-import pytest
 import tempfile
 from pathlib import Path
 from datetime import datetime
 
 from forseti.reporter.iso_report import ISOReportGenerator
 from forseti.models import (
-    TestScript, TestScenario, TestStep, TestStatus,
-    TestSuiteResult, ScenarioResult, StepResult, TestPhase,
+    TestScript, TestScenario, TestStatus,
+    TestSuiteResult, ScenarioResult, TestPhase,
 )
 
 

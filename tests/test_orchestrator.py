@@ -5,7 +5,7 @@ Tests the main orchestrator that runs E2E test pipeline.
 import pytest
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from forseti.agents.orchestrator import ForsetiOrchestrator
 from forseti.db.results_db import ResultsDB
@@ -77,7 +77,7 @@ class TestForsetiOrchestrator:
         """After a run, reports are generated."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db = ResultsDB(db_path=f"{tmpdir}/test.db")
-            orch = ForsetiOrchestrator(
+            orch = ForsetiOrchestrator(  # noqa: F841 — setup for integration context
                 base_url="http://localhost:8080",
                 admin_email="admin@test.com",
                 admin_password="pass",

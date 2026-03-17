@@ -41,13 +41,34 @@
 | US-06 | เปิด GitHub issue อัตโนมัติเมื่อ test fail | 3 | ✅ Done |
 | US-07 | CLI: `forseti run`, `validate`, `report`, `info` | 3 | ✅ Done |
 
-### Sprint 2 — Enhancement (Planned)
+### Sprint 2 — ADK Multi-Agent + API Test Runner (Week 2)
 | # | User Story | Story Points | Status |
 |---|---|---|---|
-| US-08 | Web dashboard แสดงผล real-time | 8 | 📋 Planned |
-| US-09 | Historical trend tracking | 5 | 📋 Planned |
-| US-10 | CI/CD pipeline integration (GitHub Actions) | 3 | 📋 Planned |
-| US-11 | Parallel scenario execution | 5 | 📋 Planned |
+| US-08 | Refactor agents ด้วย Google ADK (SequentialAgent, ParallelAgent) | 8 | 📋 Planned |
+| US-09 | สร้าง ApiTestAgent พร้อม HTTP tools (httpx) | 5 | 📋 Planned |
+| US-10 | สร้าง AuthConfig + admin_login tool | 3 | 📋 Planned |
+| US-11 | สร้าง assert tools (status, json_field) | 3 | 📋 Planned |
+| US-12 | สร้าง ISO report generator (SI-04 markdown) | 5 | 📋 Planned |
+| US-13 | สร้าง Cloud Super Hero YAML test script (API) | 3 | 📋 Planned |
+| US-14 | Unit tests สำหรับ API tools + ISO reporter (TDD) | 5 | 📋 Planned |
+
+### Sprint 3 — Reporter Agent + Analyzer Agent (Week 3)
+| # | User Story | Story Points | Status |
+|---|---|---|---|
+| US-15 | สร้าง ReporterAgent (ISO + HTML + GitHub issue) | 5 | 📋 Planned |
+| US-16 | สร้าง AnalyzerAgent (LLM วิเคราะห์ผล + root cause) | 5 | 📋 Planned |
+| US-17 | สร้าง ForsetiOrchestrator (SequentialAgent ครอบทุก agent) | 3 | 📋 Planned |
+| US-18 | Historical trend tracking (compare ผลข้ามรอบ) | 5 | 📋 Planned |
+| US-19 | Unit tests + integration tests สำหรับ orchestrator (TDD) | 5 | 📋 Planned |
+
+### Sprint 4 — UI Automation + ParallelAgent (Week 4)
+| # | User Story | Story Points | Status |
+|---|---|---|---|
+| US-20 | สร้าง UiTestAgent พร้อม Playwright tools | 8 | 📋 Planned |
+| US-21 | สร้าง ParallelTestRunner (API + UI พร้อมกัน) | 5 | 📋 Planned |
+| US-22 | สร้าง Cloud Super Hero YAML test script (UI — Student Portal) | 5 | 📋 Planned |
+| US-23 | CI/CD integration (GitHub Actions) | 3 | 📋 Planned |
+| US-24 | E2E integration test ครบทั้ง pipeline | 5 | 📋 Planned |
 
 ## 3. ทีมงาน
 

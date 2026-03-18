@@ -1,0 +1,59 @@
+# ⚖️ Forseti — Cloud Super Hero Admin Dashboard UI Tests
+# Tests the admin dashboard UI using Playwright browser automation.
+suite_name: "CSH Admin UI"
+
+scenarios:
+  # --- UI: Admin Login Page ---
+  - name: "Admin Dashboard — Login Page Loads"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/"
+      - action: assert_element
+        selector: "#adminLoginScreen"
+      - action: assert_element
+        selector: "#adminEmail"
+      - action: assert_element
+        selector: "#adminPassword"
+      - action: assert_element
+        selector: "#adminLoginBtn"
+    tags: [ui, smoke]
+
+  - name: "Admin Dashboard — Login Form Visible"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/"
+      - action: assert_element
+        selector: "#adminLoginForm"
+    tags: [ui, smoke]
+
+  - name: "Admin Dashboard — Email Input Interaction"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/"
+      - action: click
+        selector: "#adminEmail"
+      - action: type
+        selector: "#adminEmail"
+        value: "test@example.com"
+      - action: type
+        selector: "#adminPassword"
+        value: "test123"
+      - action: assert_element
+        selector: "#adminLoginBtn"
+    tags: [ui, input]
+
+  # --- API Tests ---
+  - name: "Admin API — Root Page HTML"
+    method: GET
+    path: "/"
+    expected_status: 200
+    tags: [api, smoke]
+
+  - name: "Admin API — Batches (requires auth)"
+    method: GET
+    path: "/api/admin/batches"
+    expected_status: 401
+    tags: [api, auth]

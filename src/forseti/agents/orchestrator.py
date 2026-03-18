@@ -204,11 +204,14 @@ class ForsetiOrchestrator:
 
     async def _run_ui_scenario(self, scenario: dict) -> dict:
         """Run a UI scenario via BrowserEngine + ActionExecutor."""
+        from pathlib import Path
+
         from forseti.browser.engine import BrowserEngine
 
         name = scenario["name"]
         steps = scenario.get("steps", [])
         start = time.monotonic()
+        screenshot_path = None
 
         try:
             config = BrowserConfig(headless=True)
@@ -216,37 +219,59 @@ class ForsetiOrchestrator:
             await engine.start()
 
             async with engine.session() as page:
-                for step_def in steps:
+                for i, step_def in enumerate(steps):
                     action_type = step_def.get("action", "")
                     selector = step_def.get("selector")
                     value = step_def.get("value", "")
 
-                    # Resolve value for navigate
-                    if action_type == "navigate":
-                        url = value if value.startswith("http") else f"{self.base_url}{value}"
-                        await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                    elif action_type == "click":
-                        await page.locator(selector).click(timeout=30000)
-                    elif action_type == "type":
-                        await page.locator(selector).fill(value, timeout=30000)
-                    elif action_type == "assert_text":
-                        await page.get_by_text(value).wait_for(timeout=30000)
-                    elif action_type == "assert_element":
-                        await page.wait_for_selector(selector, timeout=30000)
-                    elif action_type == "wait":
-                        import asyncio as _asyncio
-                        await _asyncio.sleep(int(value) / 1000 if value else 1)
+                    try:
+                        # Resolve value for navigate
+                        if action_type == "navigate":
+                            url = value if value.startswith("http") else f"{self.base_url}{value}"
+                            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                        elif action_type == "click":
+                            await page.locator(selector).click(timeout=30000)
+                        elif action_type == "type":
+                            await page.locator(selector).fill(value, timeout=30000)
+                        elif action_type == "assert_text":
+                            await page.get_by_text(value).wait_for(timeout=30000)
+                        elif action_type == "assert_element":
+                            await page.wait_for_selector(selector, timeout=30000)
+                        elif action_type == "wait":
+                            import asyncio as _asyncio
+                            await _asyncio.sleep(int(value) / 1000 if value else 1)
+                        elif action_type == "screenshot":
+                            ss_dir = Path(self.report_dir) / "screenshots"
+                            ss_dir.mkdir(parents=True, exist_ok=True)
+                            ss_file = ss_dir / f"{name.replace(' ', '_')}__step{i + 1}.png"
+                            await page.screenshot(path=str(ss_file))
+                            screenshot_path = str(ss_file)
+
+                    except Exception as step_err:
+                        # Screenshot on failure
+                        ss_dir = Path(self.report_dir) / "screenshots"
+                        ss_dir.mkdir(parents=True, exist_ok=True)
+                        safe_name = name.replace(" ", "_").replace("/", "_")
+                        ss_file = ss_dir / f"{safe_name}__FAIL_step{i + 1}.png"
+                        try:
+                            await page.screenshot(path=str(ss_file))
+                            screenshot_path = str(ss_file)
+                        except Exception:
+                            pass
+                        raise step_err
 
             await engine.stop()
 
             duration_ms = int((time.monotonic() - start) * 1000)
             return {"name": name, "status": "pass",
-                    "duration_ms": duration_ms, "error": None}
+                    "duration_ms": duration_ms, "error": None,
+                    "screenshot": screenshot_path}
 
         except Exception as e:
             duration_ms = int((time.monotonic() - start) * 1000)
             return {"name": name, "status": "fail",
-                    "duration_ms": duration_ms, "error": str(e)}
+                    "duration_ms": duration_ms, "error": str(e),
+                    "screenshot": screenshot_path}
 
     async def _run_api_scenario(self, scenario: dict) -> dict:
         """Run a single API scenario.
@@ -308,16 +333,19 @@ class ForsetiOrchestrator:
         scenarios = self.load_yaml_scenarios(yaml_path)
         logger.info(f"   Loaded {len(scenarios)} scenarios from YAML")
 
-        # 2. Admin login
+        # 2. Admin login (non-fatal — UI tests don't need auth)
         logger.info(f"   Authenticating as {self.admin_email}...")
-        auth_result = await admin_login(
-            self.base_url, self.admin_email, self.admin_password
-        )
-        if auth_result["success"]:
-            self.admin_token = auth_result["token"]
-            logger.info("   ✅ Admin authenticated")
-        else:
-            logger.warning(f"   ⚠️ Admin auth failed: {auth_result.get('error')}")
+        try:
+            auth_result = await admin_login(
+                self.base_url, self.admin_email, self.admin_password
+            )
+            if auth_result["success"]:
+                self.admin_token = auth_result["token"]
+                logger.info("   ✅ Admin authenticated")
+            else:
+                logger.warning(f"   ⚠️ Admin auth failed: {auth_result.get('error')}")
+        except Exception as auth_err:
+            logger.warning(f"   ⚠️ Admin auth error (non-fatal): {auth_err}")
 
         # 3. Run each scenario
         results = []

@@ -1,4 +1,5 @@
 """⚖️ Forseti Web Report Dashboard — serve test results from SQLite."""
+import os
 import sys
 from pathlib import Path
 
@@ -8,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 from forseti.db.results_db import ResultsDB
 
 app = Flask(__name__, static_folder="web/dashboard")
-DB_PATH = "forseti_results.db"
+DB_PATH = os.environ.get("DB_PATH", "/app/data/forseti_results.db")
 
 
 def get_db():
@@ -63,6 +64,42 @@ def api_run_feedback(run_id):
     feedback = db.get_feedback(run_id)
     db.close()
     return jsonify(feedback)
+
+
+@app.route("/api/runs", methods=["POST"])
+def api_submit_run():
+    """Accept external test results (unit/e2e/ui) from any Asgard service."""
+    data = request.get_json(force=True)
+    if not data or "suite_name" not in data:
+        return jsonify({"error": "suite_name required"}), 400
+
+    db = get_db()
+    run_id = db.save_run(
+        suite_name=data["suite_name"],
+        phase=data.get("phase", "SIT"),
+        base_url=data.get("base_url", ""),
+        total=data.get("total", 0),
+        passed=data.get("passed", 0),
+        failed=data.get("failed", 0),
+        errors=data.get("errors", 0),
+        skipped=data.get("skipped", 0),
+        duration_ms=data.get("duration_ms", 0),
+        project_version=data.get("project_version", "unknown"),
+        project_commit=data.get("project_commit", "unknown"),
+    )
+
+    # Save individual scenarios if provided
+    for sc in data.get("scenarios", []):
+        db.save_scenario(
+            run_id=run_id,
+            name=sc.get("name", "unknown"),
+            status=sc.get("status", "unknown"),
+            duration_ms=sc.get("duration_ms", 0),
+            error_message=sc.get("error_message"),
+        )
+
+    db.close()
+    return jsonify({"id": run_id, "status": "saved"}), 201
 
 
 if __name__ == "__main__":

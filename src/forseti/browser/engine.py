@@ -105,13 +105,39 @@ class RatatoskrLocator:
         self._selector = selector
 
     async def click(self, timeout: int | None = None) -> None:
-        logger.warning(f"click('{self._selector}') — not supported via Ratatoskr API (scrape-only)")
+        """Click element via Ratatoskr /api/v1/interact."""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                f"{self._page.ratatoskr_url}/api/v1/interact",
+                json={"url": self._page.url, "actions": [{"type": "click", "selector": self._selector}]},
+            )
+            data = resp.json()
+            if data.get("error"):
+                raise RuntimeError(f"click failed: {data['error']}")
+            # Refresh page state
+            self._page._title = data.get("title", self._page._title)
 
     async def fill(self, value: str, timeout: int | None = None) -> None:
-        logger.warning(f"fill('{self._selector}', ...) — not supported via Ratatoskr API")
+        """Fill input via Ratatoskr /api/v1/interact."""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                f"{self._page.ratatoskr_url}/api/v1/interact",
+                json={"url": self._page.url, "actions": [{"type": "fill", "selector": self._selector, "value": value}]},
+            )
+            data = resp.json()
+            if data.get("error"):
+                raise RuntimeError(f"fill failed: {data['error']}")
 
     async def select_option(self, value: str, timeout: int | None = None) -> None:
-        logger.warning(f"select_option('{self._selector}', ...) — not supported via Ratatoskr API")
+        """Select dropdown via Ratatoskr /api/v1/interact."""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                f"{self._page.ratatoskr_url}/api/v1/interact",
+                json={"url": self._page.url, "actions": [{"type": "select", "selector": self._selector, "value": value}]},
+            )
+            data = resp.json()
+            if data.get("error"):
+                raise RuntimeError(f"select failed: {data['error']}")
 
     async def hover(self, timeout: int | None = None) -> None:
         logger.warning(f"hover('{self._selector}') — not supported via Ratatoskr API")

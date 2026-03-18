@@ -35,3 +35,4 @@ forseti.yaml
 # Test artifacts
 *.html
 !templates/*.html
+forseti_results.db

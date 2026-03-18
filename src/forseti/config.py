@@ -112,6 +112,7 @@ class ProjectConfig(BaseModel):
     test_script: str = Field(description="Path to YAML test script")
     auth: AuthConfig = Field(default_factory=AuthConfig)
     github_repo: str = Field(default="", description="GitHub repo (owner/name)")
+    project_dir: str = Field(default="", description="Local path to project git repo for version detection")
 
 
 def load_projects(yaml_path: str) -> dict[str, ProjectConfig]:
@@ -140,6 +141,7 @@ def load_projects(yaml_path: str) -> dict[str, ProjectConfig]:
             test_script=cfg["test_script"],
             auth=auth,
             github_repo=github_repo,
+            project_dir=cfg.get("project_dir", ""),
         )
 
     return projects

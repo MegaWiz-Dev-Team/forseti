@@ -3,6 +3,7 @@
 Red phase: Tests written before implementation.
 """
 import tempfile
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -284,3 +285,104 @@ class TestDBAdapterRegistry:
 
         with pytest.raises(ValueError, match="Unknown db adapter"):
             create_db_adapter("mongodb", {})
+
+
+# ─── 5C: Version Auto-Detection ──────────────────────────────────────
+
+
+class TestVersionDetector:
+    """Tests for version auto-detection from Git."""
+
+    def test_detect_from_git_repo(self):
+        """Detect version from a real git repository."""
+        from forseti.tools.version_detector import detect_project_version
+
+        # Use Forseti's own repo as test target
+        result = detect_project_version(
+            project_dir=str(Path(__file__).parent.parent)
+        )
+        assert result["commit"] != "unknown"
+        assert len(result["commit"]) >= 7  # short SHA
+
+    def test_detect_from_non_git_dir(self):
+        """Non-git directory returns 'unknown'."""
+        from forseti.tools.version_detector import detect_project_version
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = detect_project_version(project_dir=tmpdir)
+            assert result["version"] == "unknown"
+            assert result["commit"] == "unknown"
+
+    def test_detect_none_dir(self):
+        """None project_dir returns 'unknown'."""
+        from forseti.tools.version_detector import detect_project_version
+
+        result = detect_project_version(project_dir=None)
+        assert result["version"] == "unknown"
+
+
+class TestVersionInDB:
+    """Tests for version tracking in ResultsDB."""
+
+    def test_save_run_with_version(self):
+        """Run record stores project_version and project_commit."""
+        from forseti.db.results_db import ResultsDB
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db = ResultsDB(db_path=f"{tmpdir}/test.db")
+            run_id = db.save_run(
+                suite_name="Test",
+                phase="SIT",
+                base_url="http://localhost",
+                total=1, passed=1, failed=0, errors=0, skipped=0,
+                duration_ms=100,
+                project_version="v2.1.0",
+                project_commit="c825675",
+            )
+            run = db.get_run(run_id)
+            assert run["project_version"] == "v2.1.0"
+            assert run["project_commit"] == "c825675"
+            db.close()
+
+    def test_save_run_without_version_defaults(self):
+        """Run without version defaults to 'unknown'."""
+        from forseti.db.results_db import ResultsDB
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db = ResultsDB(db_path=f"{tmpdir}/test.db")
+            run_id = db.save_run(
+                suite_name="Test",
+                phase="SIT",
+                base_url="http://localhost",
+                total=1, passed=1, failed=0, errors=0, skipped=0,
+                duration_ms=100,
+            )
+            run = db.get_run(run_id)
+            assert run["project_version"] == "unknown"
+            assert run["project_commit"] == "unknown"
+            db.close()
+
+
+class TestProjectConfigWithDir:
+    """Tests for project_dir in ProjectConfig."""
+
+    def test_project_config_has_project_dir(self):
+        """ProjectConfig includes optional project_dir field."""
+        from forseti.config import ProjectConfig
+
+        config = ProjectConfig(
+            base_url="http://localhost:8080",
+            test_script="test.yaml",
+            project_dir="/path/to/project",
+        )
+        assert config.project_dir == "/path/to/project"
+
+    def test_project_config_default_project_dir(self):
+        """ProjectConfig defaults project_dir to empty string."""
+        from forseti.config import ProjectConfig
+
+        config = ProjectConfig(
+            base_url="http://localhost:8080",
+            test_script="test.yaml",
+        )
+        assert config.project_dir == ""

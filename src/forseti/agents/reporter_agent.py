@@ -35,14 +35,15 @@ class ReporterAgent:
         self.report_dir = report_dir
         self.iso_gen = ISOReportGenerator()
 
-    def report(self, result: TestSuiteResult) -> dict:
+    def report(self, result: TestSuiteResult, version_info: dict | None = None) -> dict:
         """Full report pipeline: DB + ISO + Summary.
 
         Returns:
             {"run_id": int, "iso_report_path": str, "summary": str,
-             "github_issue": tuple | None}
+             "github_issue": tuple | None, "version_info": dict}
         """
-        run_id = self.save_to_db(result)
+        vi = version_info or {"version": "unknown", "commit": "unknown"}
+        run_id = self.save_to_db(result, version_info=vi)
         iso_path = self.generate_iso_report(result)
         summary = self.generate_summary(result)
         issue = self.build_github_issue(result)
@@ -56,10 +57,12 @@ class ReporterAgent:
             "iso_report_path": str(iso_path),
             "summary": summary,
             "github_issue": issue,
+            "version_info": vi,
         }
 
-    def save_to_db(self, result: TestSuiteResult) -> int:
+    def save_to_db(self, result: TestSuiteResult, version_info: dict | None = None) -> int:
         """Save test results to SQLite database."""
+        vi = version_info or {"version": "unknown", "commit": "unknown"}
         run_id = self.db.save_run(
             suite_name=result.script.name,
             phase=result.script.phase.value,
@@ -70,6 +73,8 @@ class ReporterAgent:
             errors=result.errors,
             skipped=result.skipped,
             duration_ms=result.duration_ms,
+            project_version=vi.get("version", "unknown"),
+            project_commit=vi.get("commit", "unknown"),
         )
 
         for sr in result.scenario_results:

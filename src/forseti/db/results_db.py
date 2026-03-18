@@ -23,23 +23,26 @@ class ResultsDB:
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
         self._create_tables()
+        self._migrate_tables()
 
     def _create_tables(self) -> None:
         """Create tables if they don't exist."""
         self.conn.executescript("""
             CREATE TABLE IF NOT EXISTS runs (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                suite_name  TEXT NOT NULL,
-                phase       TEXT NOT NULL,
-                base_url    TEXT NOT NULL,
-                total       INTEGER NOT NULL,
-                passed      INTEGER NOT NULL,
-                failed      INTEGER NOT NULL,
-                errors      INTEGER NOT NULL DEFAULT 0,
-                skipped     INTEGER NOT NULL DEFAULT 0,
-                pass_rate   REAL NOT NULL,
-                duration_ms INTEGER NOT NULL,
-                created_at  TEXT NOT NULL
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                suite_name      TEXT NOT NULL,
+                phase           TEXT NOT NULL,
+                base_url        TEXT NOT NULL,
+                total           INTEGER NOT NULL,
+                passed          INTEGER NOT NULL,
+                failed          INTEGER NOT NULL,
+                errors          INTEGER NOT NULL DEFAULT 0,
+                skipped         INTEGER NOT NULL DEFAULT 0,
+                pass_rate       REAL NOT NULL,
+                duration_ms     INTEGER NOT NULL,
+                project_version TEXT NOT NULL DEFAULT 'unknown',
+                project_commit  TEXT NOT NULL DEFAULT 'unknown',
+                created_at      TEXT NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS scenarios (
@@ -55,6 +58,21 @@ class ResultsDB:
         """)
         self.conn.commit()
 
+    def _migrate_tables(self) -> None:
+        """Add missing columns to existing tables (safe migration)."""
+        cursor = self.conn.execute("PRAGMA table_info(runs)")
+        columns = {row[1] for row in cursor.fetchall()}
+
+        if "project_version" not in columns:
+            self.conn.execute(
+                "ALTER TABLE runs ADD COLUMN project_version TEXT NOT NULL DEFAULT 'unknown'"
+            )
+        if "project_commit" not in columns:
+            self.conn.execute(
+                "ALTER TABLE runs ADD COLUMN project_commit TEXT NOT NULL DEFAULT 'unknown'"
+            )
+        self.conn.commit()
+
     def save_run(
         self,
         suite_name: str,
@@ -66,6 +84,8 @@ class ResultsDB:
         errors: int,
         skipped: int,
         duration_ms: int,
+        project_version: str = "unknown",
+        project_commit: str = "unknown",
     ) -> int:
         """Insert a test run record.
 
@@ -77,10 +97,12 @@ class ResultsDB:
 
         cursor = self.conn.execute(
             """INSERT INTO runs (suite_name, phase, base_url, total, passed,
-               failed, errors, skipped, pass_rate, duration_ms, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               failed, errors, skipped, pass_rate, duration_ms,
+               project_version, project_commit, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (suite_name, phase, base_url, total, passed, failed,
-             errors, skipped, round(pass_rate, 1), duration_ms, now),
+             errors, skipped, round(pass_rate, 1), duration_ms,
+             project_version, project_commit, now),
         )
         self.conn.commit()
         return cursor.lastrowid

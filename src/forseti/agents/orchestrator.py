@@ -46,6 +46,7 @@ class ForsetiOrchestrator:
         admin_password: str,
         db: ResultsDB,
         report_dir: str = "reports",
+        project_dir: str = "",
     ):
         self.base_url = base_url
         self.admin_email = admin_email
@@ -53,6 +54,8 @@ class ForsetiOrchestrator:
         self.db = db
         self.reporter = ReporterAgent(db=db, report_dir=report_dir)
         self.admin_token: str | None = None
+        self.report_dir = report_dir
+        self.project_dir = project_dir
 
     @classmethod
     def from_project(
@@ -70,6 +73,7 @@ class ForsetiOrchestrator:
             admin_password=password,
             db=db,
             report_dir=report_dir,
+            project_dir=project.project_dir,
         )
 
     def load_yaml_scenarios(self, yaml_path: str) -> list[dict]:
@@ -333,6 +337,11 @@ class ForsetiOrchestrator:
         scenarios = self.load_yaml_scenarios(yaml_path)
         logger.info(f"   Loaded {len(scenarios)} scenarios from YAML")
 
+        # 1.5 Detect project version
+        from forseti.tools.version_detector import detect_project_version
+        version_info = detect_project_version(project_dir=self.project_dir)
+        logger.info(f"   📌 Version: {version_info['version']} ({version_info['commit']})")
+
         # 2. Admin login (non-fatal — UI tests don't need auth)
         logger.info(f"   Authenticating as {self.admin_email}...")
         try:
@@ -360,8 +369,8 @@ class ForsetiOrchestrator:
         # 4. Build TestSuiteResult for reporter
         suite_result = self._build_suite_result(scenarios, results, yaml_path)
 
-        # 5. Generate reports
-        report = self.reporter.report(suite_result)
+        # 5. Generate reports (pass version info)
+        report = self.reporter.report(suite_result, version_info=version_info)
 
         logger.info(f"\n{report['summary']}")
         return report

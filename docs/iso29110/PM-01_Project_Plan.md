@@ -44,31 +44,50 @@
 ### Sprint 2 — ADK Multi-Agent + API Test Runner (Week 2)
 | # | User Story | Story Points | Status |
 |---|---|---|---|
-| US-08 | Refactor agents ด้วย Google ADK (SequentialAgent, ParallelAgent) | 8 | 📋 Planned |
-| US-09 | สร้าง ApiTestAgent พร้อม HTTP tools (httpx) | 5 | 📋 Planned |
-| US-10 | สร้าง AuthConfig + admin_login tool | 3 | 📋 Planned |
-| US-11 | สร้าง assert tools (status, json_field) | 3 | 📋 Planned |
-| US-12 | สร้าง ISO report generator (SI-04 markdown) | 5 | 📋 Planned |
-| US-13 | สร้าง Cloud Super Hero YAML test script (API) | 3 | 📋 Planned |
-| US-14 | Unit tests สำหรับ API tools + ISO reporter (TDD) | 5 | 📋 Planned |
+| US-08 | Refactor agents ด้วย Google ADK (SequentialAgent, ParallelAgent) | 8 | ✅ Done |
+| US-09 | สร้าง ApiTestAgent พร้อม HTTP tools (httpx) | 5 | ✅ Done |
+| US-10 | สร้าง AuthConfig + admin_login tool | 3 | ✅ Done |
+| US-11 | สร้าง assert tools (status, json_field) | 3 | ✅ Done |
+| US-12 | สร้าง ISO report generator (SI-04 markdown) | 5 | ✅ Done |
+| US-13 | สร้าง Cloud Super Hero YAML test script (API) | 3 | ✅ Done |
+| US-14 | Unit tests สำหรับ API tools + ISO reporter (TDD) | 5 | ✅ Done |
 
-### Sprint 3 — Reporter Agent + Analyzer Agent (Week 3)
+### Sprint 3 — Reporter Agent + Orchestrator (Week 3)
 | # | User Story | Story Points | Status |
 |---|---|---|---|
-| US-15 | สร้าง ReporterAgent (ISO + HTML + GitHub issue) | 5 | 📋 Planned |
-| US-16 | สร้าง AnalyzerAgent (LLM วิเคราะห์ผล + root cause) | 5 | 📋 Planned |
-| US-17 | สร้าง ForsetiOrchestrator (SequentialAgent ครอบทุก agent) | 3 | 📋 Planned |
-| US-18 | Historical trend tracking (compare ผลข้ามรอบ) | 5 | 📋 Planned |
-| US-19 | Unit tests + integration tests สำหรับ orchestrator (TDD) | 5 | 📋 Planned |
+| US-15 | สร้าง ReporterAgent (ISO + SQLite + GitHub issue) | 5 | ✅ Done |
+| US-16 | สร้าง ForsetiOrchestrator (E2E pipeline) | 5 | ✅ Done |
+| US-17 | NL Action Parser (NLP → HTTP call) | 3 | ✅ Done |
+| US-18 | Historical trend tracking (compare ผลข้ามรอบ) | 5 | ✅ Done |
+| US-19 | Unit tests + integration tests (TDD) | 5 | ✅ Done |
 
-### Sprint 4 — UI Automation + ParallelAgent (Week 4)
+### Sprint 4 — Multi-Project + Dashboard + Self-Test (Week 4)
 | # | User Story | Story Points | Status |
 |---|---|---|---|
-| US-20 | สร้าง UiTestAgent พร้อม Playwright tools | 8 | 📋 Planned |
-| US-21 | สร้าง ParallelTestRunner (API + UI พร้อมกัน) | 5 | 📋 Planned |
-| US-22 | สร้าง Cloud Super Hero YAML test script (UI — Student Portal) | 5 | 📋 Planned |
-| US-23 | CI/CD integration (GitHub Actions) | 3 | 📋 Planned |
-| US-24 | E2E integration test ครบทั้ง pipeline | 5 | 📋 Planned |
+| US-20 | Multi-project configuration (forseti.yaml) | 5 | ✅ Done |
+| US-21 | Project selector (--project CLI flag) | 3 | ✅ Done |
+| US-22 | Forseti Self-Test (dashboard ทดสอบตัวเอง) | 3 | ✅ Done |
+| US-23 | Teal Theme Dashboard (Flask + dark mode) | 5 | ✅ Done |
+| US-24 | GitHub Actions CI (pytest on push) | 3 | ✅ Done |
+
+### Sprint 5 — UI Testing + DB Verification + Version Tracking (Week 5)
+| # | User Story | Story Points | Status |
+|---|---|---|---|
+| US-25 | UI testing via YAML (type: "ui") | 5 | ✅ Done |
+| US-26 | DB verification adapter (SQLiteAdapter + factory) | 5 | ✅ Done |
+| US-27 | Version auto-detect จาก Git (SHA + tag) | 5 | ✅ Done |
+| US-28 | Dashboard version column + modal | 3 | ✅ Done |
+| US-29 | ResultsDB migration (project_version, project_commit) | 3 | ✅ Done |
+
+### Sprint 6 — Version Policy + LLM Feedback Agent (Week 6)
+| # | User Story | Story Points | Status |
+|---|---|---|---|
+| US-30 | SemVer version suggestion (Conventional Commits) | 5 | ✅ Done |
+| US-31 | Auto version tag creation (git tag) | 3 | ✅ Done |
+| US-32 | LLM Feedback Agent (Gemini dual-expert analysis) | 8 | ✅ Done |
+| US-33 | Feedback DB table + save/get methods | 3 | ✅ Done |
+| US-34 | Dashboard feedback UI (severity badges + modal) | 5 | ✅ Done |
+| US-35 | Feedback markdown reports per run | 3 | ✅ Done |
 
 ## 3. ทีมงาน
 

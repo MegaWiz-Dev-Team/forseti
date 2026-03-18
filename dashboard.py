@@ -57,6 +57,14 @@ def api_trend():
     return jsonify(trend)
 
 
+@app.route("/api/runs/<int:run_id>/feedback")
+def api_run_feedback(run_id):
+    db = get_db()
+    feedback = db.get_feedback(run_id)
+    db.close()
+    return jsonify(feedback)
+
+
 if __name__ == "__main__":
     print("⚖️ Forseti Dashboard — http://localhost:5555")
     app.run(host="0.0.0.0", port=5555, debug=True)

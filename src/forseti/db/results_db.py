@@ -55,6 +55,18 @@ class ResultsDB:
                 created_at   TEXT NOT NULL,
                 FOREIGN KEY (run_id) REFERENCES runs(id)
             );
+
+            CREATE TABLE IF NOT EXISTS feedback (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id      INTEGER NOT NULL,
+                perspective TEXT NOT NULL,
+                category    TEXT NOT NULL,
+                severity    TEXT NOT NULL DEFAULT 'low',
+                suggestion  TEXT NOT NULL,
+                scenario    TEXT DEFAULT 'general',
+                created_at  TEXT NOT NULL,
+                FOREIGN KEY (run_id) REFERENCES runs(id)
+            );
         """)
         self.conn.commit()
 
@@ -188,3 +200,50 @@ class ResultsDB:
     def close(self) -> None:
         """Close the database connection."""
         self.conn.close()
+
+    # ── Feedback ─────────────────────────────────────────────────────
+
+    def save_feedback(
+        self,
+        run_id: int,
+        perspective: str,
+        items: list[dict],
+    ) -> int:
+        """Save feedback items for a test run.
+
+        Args:
+            run_id: Link to a test run.
+            perspective: 'backend' or 'ui'.
+            items: List of dicts with category, severity, suggestion, scenario.
+
+        Returns:
+            Number of items saved.
+        """
+        now = datetime.now().isoformat()
+        count = 0
+        for item in items:
+            self.conn.execute(
+                """INSERT INTO feedback (run_id, perspective, category,
+                   severity, suggestion, scenario, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    run_id,
+                    perspective,
+                    item.get("category", "general"),
+                    item.get("severity", "low"),
+                    item.get("suggestion", ""),
+                    item.get("scenario", "general"),
+                    now,
+                ),
+            )
+            count += 1
+        self.conn.commit()
+        return count
+
+    def get_feedback(self, run_id: int) -> list[dict]:
+        """Get all feedback items for a run."""
+        rows = self.conn.execute(
+            "SELECT * FROM feedback WHERE run_id = ? ORDER BY id",
+            (run_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]

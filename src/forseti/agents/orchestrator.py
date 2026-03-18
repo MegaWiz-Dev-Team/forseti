@@ -369,8 +369,23 @@ class ForsetiOrchestrator:
         # 4. Build TestSuiteResult for reporter
         suite_result = self._build_suite_result(scenarios, results, yaml_path)
 
-        # 5. Generate reports (pass version info)
-        report = self.reporter.report(suite_result, version_info=version_info)
+        # 4.5 Build scenario details for feedback agent
+        scenario_details = []
+        for sc, res in zip(scenarios, results):
+            scenario_details.append({
+                "name": sc["name"],
+                "status": res["status"],
+                "duration_ms": res.get("duration_ms", 0),
+                "error_message": res.get("error"),
+                "type": sc.get("type", "api"),
+            })
+
+        # 5. Generate reports (pass version info + scenario details)
+        report = self.reporter.report(
+            suite_result,
+            version_info=version_info,
+            scenario_details=scenario_details,
+        )
 
         logger.info(f"\n{report['summary']}")
         return report

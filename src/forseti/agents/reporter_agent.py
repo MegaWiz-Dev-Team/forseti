@@ -35,18 +35,34 @@ class ReporterAgent:
         self.report_dir = report_dir
         self.iso_gen = ISOReportGenerator()
 
-    def report(self, result: TestSuiteResult, version_info: dict | None = None) -> dict:
-        """Full report pipeline: DB + ISO + Summary.
+    def report(
+        self,
+        result: TestSuiteResult,
+        version_info: dict | None = None,
+        scenario_details: list[dict] | None = None,
+    ) -> dict:
+        """Full report pipeline: DB + ISO + Summary + Feedback.
 
         Returns:
             {"run_id": int, "iso_report_path": str, "summary": str,
-             "github_issue": tuple | None, "version_info": dict}
+             "github_issue": tuple | None, "version_info": dict,
+             "feedback": dict | None, "feedback_report_path": str | None}
         """
         vi = version_info or {"version": "unknown", "commit": "unknown"}
         run_id = self.save_to_db(result, version_info=vi)
         iso_path = self.generate_iso_report(result)
         summary = self.generate_summary(result)
         issue = self.build_github_issue(result)
+
+        # Generate LLM feedback (optional — graceful fallback)
+        feedback = None
+        feedback_path = None
+        try:
+            feedback, feedback_path = self._generate_feedback(
+                result, run_id, vi, scenario_details,
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Feedback generation skipped: {e}")
 
         logger.info(f"📊 Report complete — Run #{run_id}")
         logger.info(f"   ISO: {iso_path}")
@@ -58,7 +74,56 @@ class ReporterAgent:
             "summary": summary,
             "github_issue": issue,
             "version_info": vi,
+            "feedback": feedback,
+            "feedback_report_path": feedback_path,
         }
+
+    def _generate_feedback(
+        self,
+        result: TestSuiteResult,
+        run_id: int,
+        version_info: dict,
+        scenario_details: list[dict] | None,
+    ) -> tuple[dict, str]:
+        """Call FeedbackAgent, save to DB, generate markdown report."""
+        from forseti.agents.feedback_agent import FeedbackAgent
+
+        agent = FeedbackAgent()
+
+        # Build scenario detail list for LLM context
+        sc_details = scenario_details or []
+        if not sc_details:
+            for sr in result.scenario_results:
+                sc_details.append({
+                    "name": sr.scenario.name,
+                    "status": sr.status.value,
+                    "duration_ms": sr.duration_ms,
+                    "error_message": sr.error_message,
+                    "type": "ui" if sr.scenario.tags and "ui" in sr.scenario.tags else "api",
+                })
+
+        feedback = agent.analyze(
+            suite_name=result.script.name,
+            base_url=result.script.base_url,
+            pass_rate=result.pass_rate,
+            passed=result.passed,
+            total=result.total,
+            duration_ms=result.duration_ms,
+            scenarios=sc_details,
+            version=version_info.get("version", "unknown"),
+        )
+
+        # Save to DB
+        self.db.save_feedback(run_id, "backend", feedback.get("backend", []))
+        self.db.save_feedback(run_id, "ui", feedback.get("ui", []))
+
+        # Generate markdown report
+        feedback_path = agent.generate_feedback_report(
+            feedback, result.script.name, run_id,
+            output_dir=str(Path(self.report_dir) / "feedback"),
+        )
+
+        return feedback, feedback_path
 
     def save_to_db(self, result: TestSuiteResult, version_info: dict | None = None) -> int:
         """Save test results to SQLite database."""

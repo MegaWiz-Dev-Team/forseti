@@ -108,3 +108,66 @@ class TestForsetiOrchestrator:
             runs = db.get_runs()
             assert len(runs) == 1
             db.close()
+
+    @pytest.mark.asyncio
+    async def test_check_service_health_online(self):
+        """TC_ORC_05 — _check_service_health returns True when service responds 200."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db = ResultsDB(db_path=f"{tmpdir}/test.db")
+            orch = ForsetiOrchestrator(
+                base_url="http://localhost:8080",
+                admin_email="", admin_password="",
+                db=db, report_dir=tmpdir,
+            )
+            mock_resp = AsyncMock()
+            mock_resp.status_code = 200
+            with patch("httpx.AsyncClient") as mock_cls:
+                mock_client = AsyncMock()
+                mock_client.get = AsyncMock(return_value=mock_resp)
+                mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+                mock_client.__aexit__ = AsyncMock(return_value=False)
+                mock_cls.return_value = mock_client
+                result = await orch._check_service_health("http://localhost:9200")
+            assert result is True
+            db.close()
+
+    @pytest.mark.asyncio
+    async def test_run_all_skips_when_ratatoskr_offline(self, tmp_path):
+        """TC_ORC_06 — run_all skips UI suite gracefully when browser service is down."""
+        # Create a minimal YAML with requires_browser + skip_if_unavailable
+        yaml_content = """
+name: "UI Test Suite"
+base_url: "http://localhost:9090"
+phase: SIT
+metadata:
+  project: test
+  requires_browser: true
+  browser_service_url: "http://localhost:9200"
+  skip_if_unavailable: true
+  skip_reason: "Ratatoskr not available"
+scenarios: []
+"""
+        yaml_path = tmp_path / "test_ui.yaml"
+        yaml_path.write_text(yaml_content)
+
+        db = ResultsDB(db_path=str(tmp_path / "test.db"))
+        orch = ForsetiOrchestrator(
+            base_url="http://localhost:9090",
+            admin_email="", admin_password="",
+            db=db, report_dir=str(tmp_path),
+        )
+
+        # Simulate Ratatoskr being offline (httpx raises ConnectionError)
+        import httpx
+        with patch("httpx.AsyncClient") as mock_cls:
+            mock_client = AsyncMock()
+            mock_client.get = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=False)
+            mock_cls.return_value = mock_client
+            result = await orch.run_all(str(yaml_path))
+
+        assert result.get("skipped") is True
+        assert "Ratatoskr" in result.get("skip_reason", "")
+        db.close()
+

@@ -7,7 +7,7 @@
 # and integration with sandbox OpenEMR pages.
 
 name: "Eir Chat Widget UI Tests"
-base_url: "http://localhost:9090"
+base_url: "http://localhost:8300"
 phase: SIT
 
 metadata:
@@ -18,7 +18,7 @@ metadata:
   requires_browser: true
   browser_service_url: "http://localhost:9200"
   skip_if_unavailable: true
-  skip_reason: "Ratatoskr (browser engine) not running — run with docker compose up ratatoskr"
+  skip_reason: "Ratatoskr (browser engine) not running — run: docker compose up ratatoskr"
 
 scenarios:
   # ═══════════════════════════════════════
@@ -105,14 +105,14 @@ scenarios:
     type: "ui"
     steps:
       - action: navigate
-        value: "/api/docs"
+        value: "/api-docs"
       - action: assert_element
         selector: "body"
     tags: [ui, docs, smoke]
 
   - name: "API Docs — Shows Eir Gateway Title"
     steps:
-      - action: "ไปที่หน้า /api/docs"
+      - action: "ไปที่หน้า /api-docs"
     expected: "เห็นข้อความ 'Eir Gateway API' ในหน้า"
     tags: [ui, docs, nlp]
 
@@ -132,6 +132,8 @@ scenarios:
   - name: "Chat Widget — Chat Status API"
     method: GET
     path: "/v1/chat/status"
+    headers:
+      X-User-Role: "doctor"
     expected_status: 200
     tags: [chat, api, smoke]
 

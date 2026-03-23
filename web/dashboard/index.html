@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚖️ Forseti — Test Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafb;
+      --card: #ffffff;
+      --mint: #10b981;
+      --mint-light: #d1fae5;
+      --mint-dark: #059669;
+      --mint-bg: #ecfdf5;
+      --accent: #0d9488;
+      --text: #1e293b;
+      --text2: #475569;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --red: #ef4444;
+      --red-light: #fef2f2;
+      --yellow: #f59e0b;
+      --yellow-light: #fffbeb;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.05), 0 2px 4px rgba(0,0,0,.04);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header {
+      background: linear-gradient(135deg, #10b981 0%, #0d9488 50%, #059669 100%);
+      padding: 1.25rem 2rem;
+      display: flex; align-items: center; gap: .75rem;
+      box-shadow: 0 2px 8px rgba(16,185,129,.25);
+    }
+    .header-icon { font-size: 1.75rem; }
+    .header h1 { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .header .subtitle { color: rgba(255,255,255,.8); font-size: .8rem; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+    .refresh-btn {
+      background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.3);
+      padding: .4rem .85rem; border-radius: 8px; cursor: pointer;
+      font-size: .8rem; font-weight: 500; transition: all .2s;
+    }
+    .refresh-btn:hover { background: rgba(255,255,255,.35); }
+    .live-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; box-shadow: var(--shadow); }
+    .stat-card .label { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .stat-card .value { font-size: 1.75rem; font-weight: 700; margin-top: .15rem; color: var(--text); }
+    .stat-card .value.green { color: var(--mint); }
+    .stat-card .value.red { color: var(--red); }
+    .stat-card .value.yellow { color: var(--yellow); }
+
+    .project-group { margin-bottom: 1.5rem; }
+    .project-header {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1rem; background: var(--mint-bg); border: 1px solid var(--mint-light);
+      border-radius: 10px 10px 0 0; cursor: pointer; user-select: none;
+    }
+    .project-header:hover { background: #d1fae5; }
+    .project-icon { font-size: 1.1rem; }
+    .project-name { font-weight: 600; font-size: .95rem; color: var(--mint-dark); }
+    .project-meta { margin-left: auto; display: flex; gap: 1rem; align-items: center; }
+    .project-stat { font-size: .75rem; color: var(--text2); }
+    .project-stat strong { color: var(--text); }
+    .mini-badge { display: inline-block; padding: .15rem .5rem; border-radius: 6px; font-size: .7rem; font-weight: 600; }
+    .mini-badge.green { background: var(--mint-light); color: var(--mint-dark); }
+    .mini-badge.red { background: #fee2e2; color: #dc2626; }
+    .mini-badge.yellow { background: #fef3c7; color: #d97706; }
+
+    .runs-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--card); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 10px 10px; overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .runs-table th {
+      text-align: left; padding: .6rem 1rem; background: #f1f5f9; color: var(--text2);
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .runs-table td { padding: .6rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: .85rem; color: var(--text2); }
+    .runs-table tr:last-child td { border-bottom: none; }
+    .runs-table tr.run-row { cursor: pointer; transition: background .15s; }
+    .runs-table tr.run-row:hover td { background: var(--mint-bg); }
+    .runs-table tr.run-row.active td { background: var(--mint-light); }
+
+    .badge { display: inline-block; padding: .15rem .5rem; border-radius: 6px; font-size: .7rem; font-weight: 600; }
+    .badge.passed { background: var(--mint-light); color: var(--mint-dark); }
+    .badge.failed { background: #fee2e2; color: #dc2626; }
+    .badge.running { background: #fef3c7; color: #d97706; }
+
+    .progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; width: 100px; display: inline-block; vertical-align: middle; }
+    .progress-bar .fill { height: 100%; border-radius: 3px; transition: width .3s ease; }
+
+    .empty-msg { text-align: center; color: var(--muted); padding: 3rem; font-size: .9rem; }
+    .run-id { color: var(--muted); font-family: monospace; font-size: .8rem; }
+    .suite-label { font-weight: 500; color: var(--text); }
+
+    .project-runs { display: block; }
+    .project-runs.collapsed { display: none; }
+    .chevron { transition: transform .2s; font-size: .75rem; color: var(--muted); }
+    .chevron.open { transform: rotate(90deg); }
+
+    /* ── Detail Panel (inline expansion) ── */
+    .detail-row td { padding: 0 !important; border-bottom: 2px solid var(--mint-light) !important; }
+    .detail-panel {
+      background: #f8fafb; padding: 1rem 1.5rem; border-top: 1px dashed var(--border);
+      animation: slideDown .2s ease;
+    }
+    @keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 600px; } }
+    .detail-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+    .detail-title { font-weight: 600; font-size: .9rem; color: var(--text); }
+    .detail-info { font-size: .75rem; color: var(--muted); }
+    .detail-close { margin-left: auto; cursor: pointer; background: none; border: 1px solid var(--border); border-radius: 6px; padding: .2rem .5rem; font-size: .75rem; color: var(--muted); }
+    .detail-close:hover { background: #fee2e2; color: var(--red); border-color: #fecaca; }
+
+    .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .5rem; }
+    .scenario-card {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .5rem .75rem; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      font-size: .8rem; transition: all .15s;
+    }
+    .scenario-card:hover { border-color: var(--mint-light); box-shadow: var(--shadow); }
+    .scenario-card.passed { border-left: 3px solid var(--mint); }
+    .scenario-card.failed { border-left: 3px solid var(--red); }
+    .scenario-icon { font-size: .9rem; }
+    .scenario-name { flex: 1; font-weight: 500; color: var(--text); word-break: break-word; }
+    .scenario-dur { font-size: .7rem; color: var(--muted); white-space: nowrap; }
+    .scenario-error { font-size: .7rem; color: var(--red); margin-top: .25rem; padding: .25rem .5rem; background: var(--red-light); border-radius: 4px; grid-column: 1/-1; }
+
+    .no-scenarios { text-align: center; color: var(--muted); font-size: .8rem; padding: 1rem; font-style: italic; }
+
+    @media (max-width: 768px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .project-meta { display: none; }
+      .scenario-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="header-icon">⚖️</span>
+    <div>
+      <h1>Forseti — Test Dashboard</h1>
+      <div class="subtitle">LLM-Powered E2E Testing for Asgard</div>
+    </div>
+    <div class="header-right">
+      <div class="live-dot"></div>
+      <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats">
+      <div class="stat-card"><div class="label">Total Runs</div><div class="value" id="total-runs">—</div></div>
+      <div class="stat-card"><div class="label">Pass Rate</div><div class="value green" id="pass-rate">—</div></div>
+      <div class="stat-card"><div class="label">Projects</div><div class="value" id="project-count">—</div></div>
+      <div class="stat-card"><div class="label">Last Run</div><div class="value" id="last-run" style="font-size:.95rem">—</div></div>
+    </div>
+    <div id="projects-container"><div class="empty-msg">Loading test results...</div></div>
+  </div>
+
+  <script>
+    const PROJECT_ICONS = {
+      'CSH Admin UI':'🎓','CSH Student Portal':'👨‍🎓','Cloud Super Hero':'☁️',
+      'Forseti':'⚖️','Mimir':'🧠','Bifrost':'⚡','Fenrir':'🐺',
+      'Muninn':'🐦‍⬛','Heimdall':'👁️','Huginn':'🦅','Vardr':'🛡️',
+    };
+    let openRunId = null;
+
+    function getProject(s) {
+      if (s.startsWith('CSH Admin')) return 'CSH Admin UI';
+      if (s.startsWith('CSH Student')) return 'CSH Student Portal';
+      if (s.startsWith('Cloud Super')) return 'Cloud Super Hero';
+      if (s.startsWith('Forseti')) return 'Forseti';
+      if (s.startsWith('Mimir')||s.includes('mimir')) return 'Mimir';
+      if (s.startsWith('Bifrost')||s.includes('bifrost')) return 'Bifrost';
+      if (s.startsWith('Fenrir')||s.includes('fenrir')) return 'Fenrir';
+      if (s.startsWith('Muninn')||s.includes('muninn')) return 'Muninn';
+      return s.split(' ')[0]||'Other';
+    }
+    function getIcon(p) {
+      for (const [k,v] of Object.entries(PROJECT_ICONS)) if (p.includes(k)||k.includes(p)) return v;
+      return '📦';
+    }
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+    }
+
+    async function loadDetail(runId) {
+      if (openRunId === runId) { closeDetail(); return; }
+      closeDetail();
+      openRunId = runId;
+
+      // Highlight active row
+      document.querySelectorAll('.run-row').forEach(r => r.classList.remove('active'));
+      const activeRow = document.getElementById('row_' + runId);
+      if (activeRow) activeRow.classList.add('active');
+
+      // Fetch detail
+      const data = await fetch('/api/runs/' + runId).then(r => r.json()).catch(() => null);
+      if (!data) return;
+
+      const scenarios = data.scenarios || [];
+      const existingDetail = document.getElementById('detail_' + runId);
+      if (existingDetail) existingDetail.remove();
+
+      const tr = document.createElement('tr');
+      tr.className = 'detail-row';
+      tr.id = 'detail_' + runId;
+
+      let scenariosHtml;
+      if (scenarios.length === 0) {
+        scenariosHtml = '<div class="no-scenarios">ไม่มีข้อมูล scenario (เป็นผลรวมเท่านั้น)<br><small>ลอง submit ผลทดสอบพร้อม scenarios array</small></div>';
+      } else {
+        scenariosHtml = '<div class="scenario-grid">' +
+          scenarios.map(sc => {
+            const isPassed = sc.status && (sc.status.toLowerCase() === 'pass' || sc.status.toLowerCase() === 'passed');
+            const icon = isPassed ? '✅' : '❌';
+            const statusClass = isPassed ? 'passed' : 'failed';
+            const dur = sc.duration_ms ? sc.duration_ms + 'ms' : '';
+            const errHtml = sc.error_message ? '<div class="scenario-error">💥 ' + sc.error_message + '</div>' : '';
+            return '<div class="scenario-card ' + statusClass + '">' +
+              '<span class="scenario-icon">' + icon + '</span>' +
+              '<span class="scenario-name">' + sc.name + '</span>' +
+              '<span class="scenario-dur">' + dur + '</span>' +
+              errHtml +
+            '</div>';
+          }).join('') +
+          '</div>';
+      }
+
+      const suite = data.suite_name || '—';
+      const phase = data.phase || 'SIT';
+      const commit = data.project_commit || '—';
+      const version = data.project_version || '—';
+
+      tr.innerHTML = '<td colspan="7"><div class="detail-panel">' +
+        '<div class="detail-header">' +
+          '<span class="detail-title">📋 Run #' + runId + ' — ' + suite + '</span>' +
+          '<span class="detail-info">Phase: ' + phase + ' · Commit: ' + commit + ' · Version: ' + version + '</span>' +
+          '<button class="detail-close" onclick="closeDetail()">✕ Close</button>' +
+        '</div>' +
+        scenariosHtml +
+      '</div></td>';
+
+      activeRow.after(tr);
+    }
+
+    function closeDetail() {
+      if (openRunId) {
+        const el = document.getElementById('detail_' + openRunId);
+        if (el) el.remove();
+        document.querySelectorAll('.run-row').forEach(r => r.classList.remove('active'));
+        openRunId = null;
+      }
+    }
+
+    async function loadData() {
+      try {
+        const runs = await fetch('/api/runs').then(r => r.json());
+        document.getElementById('total-runs').textContent = runs.length;
+        if (runs.length > 0) {
+          const tp = runs.reduce((s,r) => s+(r.passed||0),0);
+          const ta = runs.reduce((s,r) => s+(r.total||1),0);
+          const rate = Math.round(tp/ta*100);
+          const el = document.getElementById('pass-rate');
+          el.textContent = rate+'%';
+          el.className = 'value '+(rate>=80?'green':rate>=50?'yellow':'red');
+          document.getElementById('last-run').textContent = fmtDate(runs[0].created_at||runs[0].started_at);
+        }
+
+        const groups = {};
+        runs.forEach(r => { const p = getProject(r.suite||r.suite_name||'Unknown'); if (!groups[p]) groups[p]=[]; groups[p].push(r); });
+        document.getElementById('project-count').textContent = Object.keys(groups).length;
+
+        const container = document.getElementById('projects-container');
+        if (!runs.length) { container.innerHTML = '<div class="empty-msg">No test runs yet.</div>'; return; }
+
+        container.innerHTML = Object.entries(groups).map(([project, projRuns]) => {
+          const tt = projRuns.reduce((s,r) => s+(r.total||0),0);
+          const tp = projRuns.reduce((s,r) => s+(r.passed||0),0);
+          const avg = tt>0 ? Math.round(tp/tt*100) : 0;
+          const bc = avg>=80?'green':avg>=50?'yellow':'red';
+          const icon = getIcon(project);
+          const gid = project.replace(/\s+/g,'_');
+
+          const rows = projRuns.map(r => {
+            const total = r.total||(r.passed+r.failed+r.skipped)||1;
+            const pr = Math.round((r.passed||0)/total*100);
+            const suite = r.suite||r.suite_name||'—';
+            const st = (r.passed===r.total&&r.total>0)?'passed':'failed';
+            const dur = r.duration_ms?(r.duration_ms/1000).toFixed(1)+'s':'—';
+            const date = fmtDate(r.created_at||r.started_at);
+            const bc2 = pr>=80?'var(--mint)':pr>=50?'var(--yellow)':'var(--red)';
+            const rid = r.id||r.run_id;
+
+            return '<tr class="run-row" id="row_'+rid+'" onclick="loadDetail('+rid+')">' +
+              '<td><span class="run-id">#'+rid+'</span></td>' +
+              '<td><span class="suite-label">'+suite+'</span></td>' +
+              '<td><span class="badge '+st+'">'+st+'</span></td>' +
+              '<td>'+(r.passed||0)+'/'+total+'</td>' +
+              '<td><div class="progress-bar"><div class="fill" style="width:'+pr+'%;background:'+bc2+'"></div></div> <span style="font-size:.75rem">'+pr+'%</span></td>' +
+              '<td>'+dur+'</td>' +
+              '<td style="color:var(--muted);font-size:.8rem">'+date+'</td>' +
+            '</tr>';
+          }).join('');
+
+          return '<div class="project-group">' +
+            '<div class="project-header" onclick="toggleGroup(\''+gid+'\')">' +
+              '<span class="chevron open" id="chev_'+gid+'">▶</span>' +
+              '<span class="project-icon">'+icon+'</span>' +
+              '<span class="project-name">'+project+'</span>' +
+              '<div class="project-meta">' +
+                '<span class="project-stat"><strong>'+projRuns.length+'</strong> runs</span>' +
+                '<span class="project-stat"><strong>'+tp+'</strong>/'+tt+' tests</span>' +
+                '<span class="mini-badge '+bc+'">'+avg+'% avg</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="project-runs" id="grp_'+gid+'">' +
+              '<table class="runs-table"><thead><tr>' +
+                '<th>#</th><th>Suite</th><th>Status</th><th>Tests</th><th>Pass Rate</th><th>Duration</th><th>Date</th>' +
+              '</tr></thead><tbody>'+rows+'</tbody></table>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('projects-container').innerHTML = '<div class="empty-msg">Failed: '+e.message+'</div>';
+      }
+    }
+
+    function toggleGroup(id) {
+      document.getElementById('grp_'+id).classList.toggle('collapsed');
+      document.getElementById('chev_'+id).classList.toggle('open');
+    }
+
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>

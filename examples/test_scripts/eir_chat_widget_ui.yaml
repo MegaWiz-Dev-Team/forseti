@@ -17,6 +17,7 @@ metadata:
   description: "UI tests for Eir embedded chat widget and Scalar API docs"
   requires_browser: true
   browser_service_url: "http://localhost:9200"
+  browser_base_url: "http://asgard_eir:8300"
   skip_if_unavailable: true
   skip_reason: "Ratatoskr (browser engine) not running — run: docker compose up ratatoskr"
 

@@ -158,9 +158,9 @@ class BrowserEngine:
     Drop-in replacement for the Playwright-based BrowserEngine.
     """
 
-    def __init__(self, config: BrowserConfig):
+    def __init__(self, config: BrowserConfig, ratatoskr_url: str | None = None):
         self.config = config
-        self.ratatoskr_url = RATATOSKR_URL
+        self.ratatoskr_url = ratatoskr_url or RATATOSKR_URL
 
     async def start(self) -> None:
         """Verify Ratatoskr is available."""

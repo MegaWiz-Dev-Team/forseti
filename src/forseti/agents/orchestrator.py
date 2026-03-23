@@ -48,6 +48,7 @@ class ForsetiOrchestrator:
         report_dir: str = "reports",
         project_dir: str = "",
         github_repo: str = "",
+        browser_service_url: str = "",
     ):
         self.base_url = base_url
         self.admin_email = admin_email
@@ -62,6 +63,8 @@ class ForsetiOrchestrator:
         self.report_dir = report_dir
         self.project_dir = project_dir
         self.github_repo = github_repo
+        self.browser_service_url = browser_service_url or ""
+        self.browser_base_url = ""  # Overridden from YAML browser_base_url metadata
 
     @classmethod
     def from_project(
@@ -228,7 +231,7 @@ class ForsetiOrchestrator:
 
         try:
             config = BrowserConfig(headless=True)
-            engine = BrowserEngine(config)
+            engine = BrowserEngine(config, ratatoskr_url=self.browser_service_url or None)
             await engine.start()
 
             async with engine.session() as page:
@@ -240,7 +243,10 @@ class ForsetiOrchestrator:
                     try:
                         # Resolve value for navigate
                         if action_type == "navigate":
-                            url = value if value.startswith("http") else f"{self.base_url}{value}"
+                            # Use browser_base_url for Ratatoskr navigation (Docker service name)
+                            # Falls back to base_url if not set
+                            nav_base = getattr(self, "browser_base_url", "") or self.base_url
+                            url = value if value.startswith("http") else f"{nav_base}{value}"
                             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
                         elif action_type == "click":
                             await page.locator(selector).click(timeout=30000)
@@ -348,9 +354,15 @@ class ForsetiOrchestrator:
             yaml_data = yaml.safe_load(f)
         yaml_meta = yaml_data.get("metadata", {})
 
+        # 0.3 Update browser URLs from YAML metadata (overrides init value)
+        if yaml_meta.get("browser_service_url"):
+            self.browser_service_url = yaml_meta["browser_service_url"]
+        if yaml_meta.get("browser_base_url"):
+            self.browser_base_url = yaml_meta["browser_base_url"]
+
         # 0.5 Browser pre-flight check
         if yaml_meta.get("requires_browser") and yaml_meta.get("skip_if_unavailable"):
-            browser_url = yaml_meta.get("browser_service_url", "http://localhost:9200")
+            browser_url = self.browser_service_url or yaml_meta.get("browser_service_url", "http://localhost:9200")
             browser_ok = await self._check_service_health(browser_url)
             if not browser_ok:
                 skip_reason = yaml_meta.get(

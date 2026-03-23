@@ -1,0 +1,162 @@
+# ⚖️ Forseti — Eir Sandbox Database Verification
+# Validates that SQL migrations ran correctly and mock data integrity is intact.
+# This is a data-layer test, not a live API test.
+# Target: asgard_mariadb Docker container, database openemr_sandbox
+#
+# Run separately from Forseti runner:
+#   python examples/test_scripts/eir_sandbox_verify.py
+
+name: "Eir Sandbox DB Verification"
+base_url: "mysql://openemr:openemr@localhost:3306/openemr_sandbox"
+phase: SIT
+
+metadata:
+  project: eir-gateway
+  version: "0.5.0"
+  sprint: "5"
+  description: "Verify sandbox SQL migrations and mock data integrity"
+
+scenarios:
+  # ═══════════════════════════════════════
+  # 1. Schema Verification
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_01 — patient_data table exists with 5 rows"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM patient_data"
+    expected_value: 5
+    tags: [schema, patient, smoke]
+
+  - name: "TC_SB_02 — form_encounter table exists with 5 rows"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM form_encounter"
+    expected_value: 5
+    tags: [schema, encounter]
+
+  - name: "TC_SB_03 — forms table has 7 entries (3 CPAP + 4 Sleep)"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM forms"
+    expected_value: 7
+    tags: [schema, forms]
+
+  - name: "TC_SB_04 — lbf_data has 100 entries"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM lbf_data"
+    expected_value: 100
+    tags: [schema, lbf]
+
+  - name: "TC_SB_05 — migration_log has 10 rows"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM migration_log"
+    expected_value: 10
+    tags: [schema, migration]
+
+  # ═══════════════════════════════════════
+  # 2. LBF Form Registration
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_06 — CPAP Prescription form registered"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM registry WHERE directory = 'LBFcpap'"
+    expected_value: 1
+    tags: [lbf, cpap]
+
+  - name: "TC_SB_07 — Sleep Report form registered"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM registry WHERE directory = 'LBFsleep'"
+    expected_value: 1
+    tags: [lbf, sleep]
+
+  - name: "TC_SB_08 — CPAP has 12 layout fields"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM layout_options WHERE form_id = 'LBFcpap'"
+    expected_value: 12
+    tags: [lbf, cpap, fields]
+
+  - name: "TC_SB_09 — Sleep Report has 16 layout fields"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM layout_options WHERE form_id = 'LBFsleep'"
+    expected_value: 16
+    tags: [lbf, sleep, fields]
+
+  # ═══════════════════════════════════════
+  # 3. Mock Patient Data
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_10 — Patient 1001 exists (สมชาย ใจดี)"
+    method: SQL
+    query: "SELECT CONCAT(fname, ' ', lname) AS name FROM patient_data WHERE pid = 1001"
+    expected_value: "สมชาย ใจดี"
+    tags: [patient, thai, utf8]
+
+  - name: "TC_SB_11 — Patient 1003 exists (ประยุทธ์ แข็งแรง)"
+    method: SQL
+    query: "SELECT CONCAT(fname, ' ', lname) AS name FROM patient_data WHERE pid = 1003"
+    expected_value: "ประยุทธ์ แข็งแรง"
+    tags: [patient, thai, utf8]
+
+  # ═══════════════════════════════════════
+  # 4. Sleep Triage Verification
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_12 — Patient 1001 triage is GREEN"
+    method: SQL
+    query: "SELECT field_value FROM lbf_data WHERE form_id = 5011 AND field_id = 'triage_status'"
+    expected_value: "green"
+    tags: [triage, green]
+
+  - name: "TC_SB_13 — Patient 1002 triage is YELLOW"
+    method: SQL
+    query: "SELECT field_value FROM lbf_data WHERE form_id = 5013 AND field_id = 'triage_status'"
+    expected_value: "yellow"
+    tags: [triage, yellow]
+
+  - name: "TC_SB_14 — Patient 1003 triage is RED"
+    method: SQL
+    query: "SELECT field_value FROM lbf_data WHERE form_id = 5014 AND field_id = 'triage_status'"
+    expected_value: "red"
+    tags: [triage, red]
+
+  - name: "TC_SB_15 — Patient 1003 AHI is critically high (28.4)"
+    method: SQL
+    query: "SELECT field_value FROM lbf_data WHERE form_id = 5014 AND field_id = 'ahi'"
+    expected_value: "28.4"
+    tags: [triage, ahi, critical]
+
+  # ═══════════════════════════════════════
+  # 5. Migration Log
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_16 — 7 successful migrations"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM migration_log WHERE status = 'success'"
+    expected_value: 7
+    tags: [migration, success]
+
+  - name: "TC_SB_17 — 1 skipped migration (declined consent)"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM migration_log WHERE status = 'skipped'"
+    expected_value: 1
+    tags: [migration, skipped]
+
+  - name: "TC_SB_18 — 1 failed migration"
+    method: SQL
+    query: "SELECT COUNT(*) AS cnt FROM migration_log WHERE status = 'failed'"
+    expected_value: 1
+    tags: [migration, failed]
+
+  - name: "TC_SB_19 — Idempotency key unique"
+    method: SQL
+    query: "SELECT COUNT(DISTINCT idempotency_key) AS cnt FROM migration_log"
+    expected_value: 10
+    tags: [migration, idempotency]
+
+  # ═══════════════════════════════════════
+  # 6. CPAP Prescription Data
+  # ═══════════════════════════════════════
+
+  - name: "TC_SB_20 — Patient 1001 CPAP model is ResMed AirSense 11"
+    method: SQL
+    query: "SELECT field_value FROM lbf_data WHERE form_id = 5001 AND field_id = 'cpap_model'"
+    expected_value: "ResMed AirSense 11 AutoSet"
+    tags: [cpap, device]

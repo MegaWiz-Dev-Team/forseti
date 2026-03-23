@@ -47,15 +47,21 @@ class ForsetiOrchestrator:
         db: ResultsDB,
         report_dir: str = "reports",
         project_dir: str = "",
+        github_repo: str = "",
     ):
         self.base_url = base_url
         self.admin_email = admin_email
         self.admin_password = admin_password
         self.db = db
-        self.reporter = ReporterAgent(db=db, report_dir=report_dir)
+        self.reporter = ReporterAgent(
+            db=db,
+            report_dir=report_dir,
+            github_repo=github_repo,
+        )
         self.admin_token: str | None = None
         self.report_dir = report_dir
         self.project_dir = project_dir
+        self.github_repo = github_repo
 
     @classmethod
     def from_project(
@@ -74,6 +80,7 @@ class ForsetiOrchestrator:
             db=db,
             report_dir=report_dir,
             project_dir=project.project_dir,
+            github_repo=project.github_repo,
         )
 
     def load_yaml_scenarios(self, yaml_path: str) -> list[dict]:

@@ -1,0 +1,142 @@
+# ⚖️ Forseti — Eir Chat Widget UI Tests
+# Browser-based UI tests for the embedded chat widget
+# Target: http://localhost:9090 (Eir Gateway)
+#
+# Uses Playwright browser engine via Forseti's LLM-driven test runner.
+# Tests cover: widget loading, FAB button, chat panel, input interaction,
+# and integration with sandbox OpenEMR pages.
+
+name: "Eir Chat Widget UI Tests"
+base_url: "http://localhost:9090"
+phase: SIT
+
+metadata:
+  project: eir-gateway
+  version: "0.5.0"
+  sprint: "4+6"
+  description: "UI tests for Eir embedded chat widget and Scalar API docs"
+
+scenarios:
+  # ═══════════════════════════════════════
+  # 1. Chat Widget — Page Load
+  # ═══════════════════════════════════════
+
+  - name: "Chat Widget — Full Page Loads"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/chat"
+      - action: assert_element
+        selector: "#eir-chat-container"
+    tags: [ui, chat, smoke]
+
+  - name: "Chat Widget — Has Title Bar"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/chat"
+      - action: assert_element
+        selector: ".chat-header"
+    tags: [ui, chat]
+
+  - name: "Chat Widget — Has Message Input"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/chat"
+      - action: assert_element
+        selector: "#chat-input"
+      - action: assert_element
+        selector: "#chat-send-btn"
+    tags: [ui, chat, input]
+
+  # ═══════════════════════════════════════
+  # 2. Chat Widget — Interaction
+  # ═══════════════════════════════════════
+
+  - name: "Chat Widget — Type and Send Message"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/chat"
+      - action: click
+        selector: "#chat-input"
+      - action: type
+        selector: "#chat-input"
+        value: "สวัสดีครับ"
+      - action: click
+        selector: "#chat-send-btn"
+    tags: [ui, chat, interaction]
+
+  - name: "Chat Widget — Message Appears in Chat"
+    steps:
+      - action: "ไปที่หน้า /chat"
+      - action: "พิมพ์ข้อความ 'test message' ในช่อง chat input"
+      - action: "กดปุ่มส่ง"
+    expected: "เห็นข้อความ 'test message' ปรากฏในกล่อง chat"
+    tags: [ui, chat, nlp]
+
+  # ═══════════════════════════════════════
+  # 3. Chat FAB Widget Script
+  # ═══════════════════════════════════════
+
+  - name: "Chat FAB — Widget Script Loadable"
+    method: GET
+    path: "/eir-chat-widget.js"
+    expected_status: 200
+    tags: [chat, widget, smoke]
+
+  - name: "Chat FAB — Script Contains FAB Logic"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/eir-chat-widget.js"
+    tags: [chat, widget]
+
+  # ═══════════════════════════════════════
+  # 4. API Docs UI (Scalar)
+  # ═══════════════════════════════════════
+
+  - name: "API Docs — Scalar UI Loads"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/api/docs"
+      - action: assert_element
+        selector: "body"
+    tags: [ui, docs, smoke]
+
+  - name: "API Docs — Shows Eir Gateway Title"
+    steps:
+      - action: "ไปที่หน้า /api/docs"
+    expected: "เห็นข้อความ 'Eir Gateway API' ในหน้า"
+    tags: [ui, docs, nlp]
+
+  # ═══════════════════════════════════════
+  # 5. Chat Widget — Responsive & Styling
+  # ═══════════════════════════════════════
+
+  - name: "Chat Widget — Has CSS Styling"
+    type: "ui"
+    steps:
+      - action: navigate
+        value: "/chat"
+      - action: assert_element
+        selector: "style, link[rel='stylesheet']"
+    tags: [ui, chat, styling]
+
+  - name: "Chat Widget — Chat Status API"
+    method: GET
+    path: "/v1/chat/status"
+    expected_status: 200
+    tags: [chat, api, smoke]
+
+  # ═══════════════════════════════════════
+  # 6. OpenEMR Proxy — Widget Injection
+  # ═══════════════════════════════════════
+
+  - name: "OpenEMR Proxy — Returns HTML"
+    method: GET
+    path: "/"
+    expected_status: 200
+    tags: [proxy, smoke]

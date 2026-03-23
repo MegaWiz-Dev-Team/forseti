@@ -6,8 +6,11 @@ Designed to run AFTER all tests complete (not during).
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
+
+import httpx
 
 from forseti.db.results_db import ResultsDB
 from forseti.models import TestSuiteResult, TestStatus
@@ -63,6 +66,9 @@ class ReporterAgent:
             )
         except Exception as e:
             logger.warning(f"⚠️ Feedback generation skipped: {e}")
+
+        # Post to Forseti dashboard
+        self.post_to_dashboard(result, vi)
 
         logger.info(f"📊 Report complete — Run #{run_id}")
         logger.info(f"   ISO: {iso_path}")
@@ -153,6 +159,46 @@ class ReporterAgent:
 
         logger.info(f"💾 Saved to SQLite: Run #{run_id}")
         return run_id
+
+    def post_to_dashboard(self, result: TestSuiteResult, version_info: dict) -> None:
+        """Post results to the Forseti Dashboard API."""
+        forseti_url = os.getenv("FORSETI_URL", "http://localhost:5555")
+        endpoint = f"{forseti_url}/api/runs"
+        
+        scenarios = []
+        for sr in result.scenario_results:
+            scenarios.append({
+                "name": sr.scenario.name,
+                "status": sr.status.value,
+                "duration_ms": sr.duration_ms,
+                "error_message": sr.error_message,
+            })
+            
+        payload = {
+            "suite_name": result.script.name,
+            "phase": "SIT",
+            "base_url": result.script.base_url,
+            "total": result.total,
+            "passed": result.passed,
+            "failed": result.failed,
+            "errors": result.errors,
+            "skipped": result.skipped,
+            "duration_ms": result.duration_ms,
+            "project_version": version_info.get("version", "unknown"),
+            "project_commit": version_info.get("commit", "unknown"),
+            "scenarios": scenarios
+        }
+        
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                res = client.post(endpoint, json=payload)
+                if res.status_code == 201:
+                    data = res.json()
+                    logger.info(f"🚀 Published to Forseti Dashboard: Run #{data.get('id')}")
+                else:
+                    logger.warning(f"⚠️ Failed to publish to Forseti: HTTP {res.status_code}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not reach Forseti Dashboard at {endpoint}: {e}")
 
     def generate_iso_report(self, result: TestSuiteResult) -> Path:
         """Generate ISO SI-04 markdown report."""

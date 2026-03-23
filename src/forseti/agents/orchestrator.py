@@ -93,10 +93,10 @@ class ForsetiOrchestrator:
         return scenarios
 
     def get_suite_name(self, yaml_path: str) -> str:
-        """Read suite_name from YAML metadata."""
+        """Read suite_name or name from YAML metadata."""
         with open(yaml_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
-        return data.get("suite_name", "Unknown Suite")
+        return data.get("suite_name", data.get("name", "Unknown Suite"))
 
     def _parse_scenario(self, sc: dict) -> dict | None:
         """Parse a YAML scenario into executable format.
@@ -117,6 +117,7 @@ class ForsetiOrchestrator:
                 "body": sc.get("body"),
                 "expected_status": sc.get("expected_status", 200),
                 "expected": sc.get("expected", ""),
+                "headers": sc.get("headers", {}),
                 "needs_auth": sc.get("needs_auth", "admin" in tags),
                 "tags": tags,
                 "db_verify": sc.get("db_verify"),
@@ -155,6 +156,7 @@ class ForsetiOrchestrator:
             "body": body,
             "expected_status": expected_status,
             "expected": expected,
+            "headers": sc.get("headers", {}),
             "needs_auth": needs_auth,
             "tags": tags,
             "db_verify": sc.get("db_verify"),
@@ -290,13 +292,14 @@ class ForsetiOrchestrator:
         body = scenario.get("body")
         expected_status = scenario.get("expected_status", 200)
         needs_auth = scenario.get("needs_auth", False)
+        custom_headers = scenario.get("headers", {})
 
         start = time.monotonic()
-        headers = {}
+        headers = dict(custom_headers)
 
         try:
             if needs_auth and self.admin_token:
-                headers = get_auth_headers(self.admin_token)
+                headers.update(get_auth_headers(self.admin_token))
 
             url = f"{self.base_url}{path}"
 

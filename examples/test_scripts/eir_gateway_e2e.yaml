@@ -1,0 +1,279 @@
+# ⚖️ Forseti — Eir Gateway E2E API Test Script
+# Tests Eir Gateway v0.5.0 REST endpoints (Sprint 5 + Sprint 6)
+# Target: http://localhost:9090 (Eir Gateway)
+#
+# Coverage:
+#   - Health check
+#   - OpenAPI docs
+#   - Sprint 3: Agent tools, A2A protocol
+#   - Sprint 4: Chat widget
+#   - Sprint 6: Hermóðr patient endpoints, RBAC, MCP audit
+
+name: "Eir Gateway E2E — API Tests"
+base_url: "http://localhost:9090"
+phase: SIT
+
+metadata:
+  project: eir-gateway
+  version: "0.5.0"
+  sprint: "6"
+  description: "Comprehensive API tests for Eir Gateway — FHIR proxy, patient endpoints, RBAC, and audit trail"
+
+scenarios:
+  # ═══════════════════════════════════════
+  # 1. Health & Docs (Smoke Tests)
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_01 — Health Check"
+    method: GET
+    path: "/healthz"
+    expected_status: 200
+    tags: [health, smoke]
+
+  - name: "TC_EIR_02 — OpenAPI JSON"
+    method: GET
+    path: "/api-docs/openapi.json"
+    expected_status: 200
+    tags: [docs, smoke]
+
+  - name: "TC_EIR_03 — Scalar API Docs UI"
+    method: GET
+    path: "/api-docs"
+    expected_status: 200
+    tags: [docs, smoke]
+
+  # ---------------------------------------------------------
+  # SPRINT 3: Agent Tools (Bifrost & Mimir Integration)
+  # ---------------------------------------------------------
+
+  - name: "TC_EIR_04 — Agent Tools: Patient Search"
+    method: GET
+    path: "/v1/patients/search?name=%E0%B8%AA%E0%B8%A1%E0%B8%8A%E0%B8%B2%E0%B8%A2"
+    expected_status: 200
+
+  - name: "TC_EIR_05 — Agent Tools: Clinical Summary"
+    method: POST
+    path: "/v1/clinical/summary"
+    body:
+      patient_id: "1001"
+    expected_status: 200
+    tags: [agent-tools, clinical]
+
+  - name: "TC_EIR_06 — Agent Tools: FHIR Query"
+    method: POST
+    path: "/v1/fhir/query"
+    body:
+      query: "find encounters for diabetes"
+      resource_type: "Encounter"
+    expected_status: 200
+    tags: [agent-tools, fhir]
+
+  # ═══════════════════════════════════════
+  # 3. Sprint 3: A2A Protocol
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_07 — A2A Agent Card"
+    method: GET
+    path: "/.well-known/agent.json"
+    expected_status: 200
+    tags: [a2a, smoke]
+
+  - name: "TC_EIR_08 — A2A Send Task"
+    method: POST
+    path: "/a2a/tasks/send"
+    body:
+      skill: "patient-search"
+      message:
+        role: "user"
+        parts:
+          - type: "text"
+            text: "Search for patient สมชาย"
+    expected_status: 200
+    tags: [a2a, protocol]
+
+  # ═══════════════════════════════════════
+  # 4. Sprint 4: Chat Widget
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_09 — Chat Widget HTML"
+    method: GET
+    path: "/chat"
+    expected_status: 200
+    tags: [chat, ui, smoke]
+
+  - name: "TC_EIR_10 — Chat Widget JS"
+    method: GET
+    path: "/eir-chat-widget.js"
+    expected_status: 200
+    tags: [chat, ui]
+
+  - name: "TC_EIR_11 — Chat Status"
+    method: GET
+    path: "/v1/chat/status"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [chat, api]
+
+  # ═══════════════════════════════════════
+  # 5. Sprint 6: Patient Endpoints (Hermóðr MCP)
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_12 — Search Patients"
+    method: GET
+    path: "/api/patients?query=สมชาย"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6]
+
+  - name: "TC_EIR_13 — Search Patients (Empty Query)"
+    method: GET
+    path: "/api/patients"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6]
+
+  - name: "TC_EIR_14 — Patient Summary"
+    method: GET
+    path: "/api/patients/1001/summary"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6]
+
+  - name: "TC_EIR_15 — Create Encounter"
+    method: POST
+    path: "/api/patients/1001/encounters"
+    headers:
+      X-User-Role: "doctor"
+    body:
+      type: "follow_up"
+      reason: "CPAP Follow-up"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6, write]
+
+  - name: "TC_EIR_16 — Sleep Reports (Default 30 days)"
+    method: GET
+    path: "/api/patients/1001/sleep-reports"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6]
+
+  - name: "TC_EIR_17 — Sleep Reports (Custom days)"
+    method: GET
+    path: "/api/patients/1001/sleep-reports?days=7"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, hermodr, sprint6]
+
+  - name: "TC_EIR_18 — Patient Not Found"
+    method: GET
+    path: "/api/patients/99999/summary"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [patients, negative, sprint6]
+
+  # ═══════════════════════════════════════
+  # 6. Sprint 6: RBAC Access Control
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_19 — RBAC: Doctor Full Access"
+    method: GET
+    path: "/api/patients/1001/summary"
+    headers:
+      X-User-Role: "doctor"
+    expected_status: 200
+    tags: [rbac, security, sprint6]
+
+  - name: "TC_EIR_20 — RBAC: Nurse Read Access"
+    method: GET
+    path: "/api/patients/1001/summary"
+    headers:
+      X-User-Role: "nurse"
+    expected_status: 200
+    tags: [rbac, security, sprint6]
+
+  - name: "TC_EIR_21 — RBAC: Nurse Blocked from Create Encounter"
+    method: POST
+    path: "/api/patients/1001/encounters"
+    headers:
+      X-User-Role: "nurse"
+    body:
+      encounter_type: "initial"
+    expected_status: 403
+    tags: [rbac, security, negative, sprint6]
+
+  - name: "TC_EIR_22 — RBAC: Admin Blocked from Clinical Data"
+    method: GET
+    path: "/api/patients/1001/summary"
+    headers:
+      X-User-Role: "admin"
+    expected_status: 403
+    tags: [rbac, security, negative, sprint6]
+
+  - name: "TC_EIR_23 — RBAC: Unknown Role Denied"
+    method: GET
+    path: "/api/patients/1001/summary"
+    headers:
+      X-User-Role: "guest"
+    expected_status: 403
+    tags: [rbac, security, negative, sprint6]
+
+  # ═══════════════════════════════════════
+  # 7. Sprint 6: MCP Audit Trail
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_24 — Audit Trail Query"
+    method: GET
+    path: "/v1/audit/mcp"
+    expected_status: 200
+    tags: [audit, sprint6, smoke]
+
+  - name: "TC_EIR_25 — Audit Trail with Limit"
+    method: GET
+    path: "/v1/audit/mcp?limit=10"
+    expected_status: 200
+    tags: [audit, sprint6]
+
+  - name: "TC_EIR_26 — Audit Trail Filter by User"
+    method: GET
+    path: "/v1/audit/mcp?user=doctor-1"
+    expected_status: 200
+    tags: [audit, sprint6]
+
+  # ═══════════════════════════════════════
+  # 8. FHIR R4 Proxy
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_27 — FHIR Patient Resource"
+    method: GET
+    path: "/fhir/r4/Patient"
+    expected_status: 401
+    tags: [fhir, proxy]
+
+  - name: "TC_EIR_28 — FHIR Metadata"
+    method: GET
+    path: "/fhir/r4/metadata"
+    expected_status: 501
+    tags: [fhir, proxy, smoke]
+
+  # ═══════════════════════════════════════
+  # 9. Security (Negative Tests)
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_29 — Unauthorized Access"
+    method: GET
+    path: "/api/patients/1001/summary"
+    expected_status: 403
+    tags: [security, negative]
+
+  - name: "TC_EIR_30 — Rate Limiting (burst)"
+    method: GET
+    path: "/healthz"
+    expected_status: 200
+    tags: [security, rate-limit]

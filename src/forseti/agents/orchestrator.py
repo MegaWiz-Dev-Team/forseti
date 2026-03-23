@@ -343,6 +343,30 @@ class ForsetiOrchestrator:
         """
         logger.info("⚖️ Forseti — Starting E2E Test Run")
 
+        # 0. Read top-level YAML metadata (for pre-flight checks)
+        with open(yaml_path, encoding="utf-8") as f:
+            yaml_data = yaml.safe_load(f)
+        yaml_meta = yaml_data.get("metadata", {})
+
+        # 0.5 Browser pre-flight check
+        if yaml_meta.get("requires_browser") and yaml_meta.get("skip_if_unavailable"):
+            browser_url = yaml_meta.get("browser_service_url", "http://localhost:9200")
+            browser_ok = await self._check_service_health(browser_url)
+            if not browser_ok:
+                skip_reason = yaml_meta.get(
+                    "skip_reason",
+                    f"Browser service unavailable at {browser_url}"
+                )
+                logger.warning(f"⚠️ Skipping UI test suite — {skip_reason}")
+                return {
+                    "summary": f"⏭️ SKIPPED — {skip_reason}",
+                    "passed": 0,
+                    "failed": 0,
+                    "total": 0,
+                    "skipped": True,
+                    "skip_reason": skip_reason,
+                }
+
         # 1. Load scenarios
         scenarios = self.load_yaml_scenarios(yaml_path)
         logger.info(f"   Loaded {len(scenarios)} scenarios from YAML")
@@ -399,6 +423,22 @@ class ForsetiOrchestrator:
 
         logger.info(f"\n{report['summary']}")
         return report
+
+    async def _check_service_health(self, base_url: str, path: str = "/healthz") -> bool:
+        """Check if a service is reachable. Returns True if healthy."""
+        import httpx
+        try:
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.get(f"{base_url}{path}")
+                return resp.status_code < 500
+        except Exception:
+            # Try /health as fallback
+            try:
+                async with httpx.AsyncClient(timeout=3.0) as client:
+                    resp = await client.get(f"{base_url}/health")
+                    return resp.status_code < 500
+            except Exception:
+                return False
 
     def _build_suite_result(
         self,

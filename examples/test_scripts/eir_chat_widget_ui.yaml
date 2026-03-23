@@ -15,6 +15,10 @@ metadata:
   version: "0.5.0"
   sprint: "4+6"
   description: "UI tests for Eir embedded chat widget and Scalar API docs"
+  requires_browser: true
+  browser_service_url: "http://localhost:9200"
+  skip_if_unavailable: true
+  skip_reason: "Ratatoskr (browser engine) not running — run with docker compose up ratatoskr"
 
 scenarios:
   # ═══════════════════════════════════════

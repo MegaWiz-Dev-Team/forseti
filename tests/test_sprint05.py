@@ -132,6 +132,7 @@ class TestUIScenarioExecution:
 
                 mock_engine_instance.session = mock_session
 
+                orch.browser_service_url = "http://localhost:9200"
                 result = await orch.run_scenario(ui_scenario)
 
             assert result["name"] == "Login UI Flow"

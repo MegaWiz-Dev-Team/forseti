@@ -229,6 +229,17 @@ class ForsetiOrchestrator:
         start = time.monotonic()
         screenshot_path = None
 
+        if not getattr(self, "browser_service_url", None):
+            msg = "Skipped: No browser_service_url defined in test metadata (Ratatoskr required for UI tests)"
+            import logging
+            logging.getLogger("forseti.agents.orchestrator").warning(f"⏭️  {name} — {msg}")
+            return {
+                "name": name,
+                "status": "skip",
+                "duration_ms": int((time.monotonic() - start) * 1000),
+                "error": msg,
+            }
+
         try:
             config = BrowserConfig(headless=True)
             engine = BrowserEngine(config, ratatoskr_url=self.browser_service_url or None)

@@ -1,77 +1,80 @@
-"""⚖️ Forseti Web Report Dashboard — serve test results from SQLite."""
+"""⚖️ Forseti Web Report Dashboard — serve test results from SQLite + MCP SSE endpoint."""
 import os
 import sys
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 from forseti.db.results_db import ResultsDB
 
-app = Flask(__name__, static_folder="web/dashboard")
+# Initialize FastAPI App
+app = FastAPI(title="Forseti Dashboard and MCP Server")
+
 DB_PATH = os.environ.get("DB_PATH", "/app/data/forseti_results.db")
 
+# ── 1. Mount MCP FastMCP Application ──
+from forseti.api.mcp import mcp_server
+app.mount("/mcp", mcp_server.sse_app())
 
 def get_db():
     """Create a fresh DB connection per request (thread-safe)."""
     return ResultsDB(db_path=DB_PATH)
 
+# ── 2. Dashboard Web Interface ──
+@app.get("/")
+async def index():
+    return FileResponse("web/dashboard/index.html")
 
-@app.route("/")
-def index():
-    return send_from_directory("web/dashboard", "index.html")
-
-
-@app.route("/api/suites")
-def api_suites():
+@app.get("/api/suites")
+async def api_suites():
     db = get_db()
     suites = db.get_suites()
     db.close()
-    return jsonify(suites)
+    return suites
 
-
-@app.route("/api/runs")
-def api_runs():
-    suite = request.args.get("suite")
+@app.get("/api/runs")
+async def api_runs(suite: str | None = None):
     db = get_db()
     runs = db.get_runs(limit=50, suite=suite)
     db.close()
-    return jsonify(runs)
+    return runs
 
-
-@app.route("/api/runs/<int:run_id>")
-def api_run_detail(run_id):
+@app.get("/api/runs/{run_id}")
+async def api_run_detail(run_id: int):
     db = get_db()
     run = db.get_run(run_id)
     db.close()
     if not run:
-        return jsonify({"error": "Not found"}), 404
-    return jsonify(run)
+        return JSONResponse(status_code=404, content={"error": "Not found"})
+    return run
 
-
-@app.route("/api/trend")
-def api_trend():
-    suite = request.args.get("suite")
+@app.get("/api/trend")
+async def api_trend(suite: str | None = None):
     db = get_db()
     trend = db.get_trend(limit=20, suite=suite)
     db.close()
-    return jsonify(trend)
+    return trend
 
-
-@app.route("/api/runs/<int:run_id>/feedback")
-def api_run_feedback(run_id):
+@app.get("/api/runs/{run_id}/feedback")
+async def api_run_feedback(run_id: int):
     db = get_db()
     feedback = db.get_feedback(run_id)
     db.close()
-    return jsonify(feedback)
+    return feedback
 
-
-@app.route("/api/runs", methods=["POST"])
-def api_submit_run():
+@app.post("/api/runs", status_code=201)
+async def api_submit_run(request: Request):
     """Accept external test results (unit/e2e/ui) from any Asgard service."""
-    data = request.get_json(force=True)
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Invalid JSON mapping"})
+        
     if not data or "suite_name" not in data:
-        return jsonify({"error": "suite_name required"}), 400
+        return JSONResponse(status_code=400, content={"error": "suite_name required"})
 
     db = get_db()
     run_id = db.save_run(
@@ -99,9 +102,13 @@ def api_submit_run():
         )
 
     db.close()
-    return jsonify({"id": run_id, "status": "saved"}), 201
+    return {"id": run_id, "status": "saved"}
 
+# Mount fallback static files (if index.html references internal assets like CSS/JS files natively)
+app.mount("/", StaticFiles(directory="web/dashboard"), name="static")
 
 if __name__ == "__main__":
+    import uvicorn
     print("⚖️ Forseti Dashboard — http://localhost:5555")
-    app.run(host="0.0.0.0", port=5555, debug=True)
+    print("🤖 Forseti MCP Server — http://localhost:5555/mcp/sse")
+    uvicorn.run("dashboard:app", host="0.0.0.0", port=5555, reload=True)

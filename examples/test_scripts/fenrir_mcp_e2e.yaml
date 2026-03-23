@@ -1,0 +1,18 @@
+# 🐺 Fenrir — E2E API Tests
+# Tests Fenrir's FastAPI endpoints and MCP SSE connectivity
+# Target: http://localhost:8200
+
+suite_name: "Fenrir MCP Service"
+
+scenarios:
+  - name: "API — Health Check"
+    method: GET
+    path: "/healthz"
+    expected_status: 200
+    tags: [api, health]
+
+  - name: "API — MCP Route Authorized Check (401)"
+    method: GET
+    path: "/mcp/sse"
+    expected_status: 401
+    tags: [api, mcp, negative]

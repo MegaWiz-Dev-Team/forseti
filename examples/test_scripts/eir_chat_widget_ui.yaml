@@ -7,7 +7,7 @@
 # and integration with sandbox OpenEMR pages.
 
 name: "Eir Chat Widget UI Tests"
-base_url: "http://localhost:8300"
+base_url: "http://localhost:30830"
 phase: SIT
 
 metadata:

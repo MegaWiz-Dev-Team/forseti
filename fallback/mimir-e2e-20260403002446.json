@@ -1,0 +1,37 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-03T00:24:46.116795Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260403002446",
+      "started_at": "2026-04-03T00:24:46.116795Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "ad7df0ea-99e0-4408-9898-7da121dcc18e",
+          "test_name": "API_EVAL_GENERATE_SET",
+          "status": "PASS",
+          "latency_ms": 14.681,
+          "details": "Connected successfully, bypassed missing data error."
+        },
+        {
+          "id": "6c0ab41f-6e21-4a80-b7b8-0806decad9af",
+          "test_name": "API_EVAL_RUN_BATCH",
+          "status": "PASS",
+          "latency_ms": 128.44400000000002,
+          "details": "{'avg_answer_relevancy': None, 'avg_faithfulness': None, 'avg_latency_ms': 101.0, 'elapsed_ms': 126, 'graph_hit_rate': 0.0, 'hit_rate': 0.0, 'mrr': 0.0, 'ndcg': 0.0, 'per_query': [{'answer_relevancy': None, 'context_precision': None, 'faithfulness': None, 'generated_answer': None, 'generation_latency_ms': None, 'graph_contributed': False, 'hit': False, 'judge_reasoning': None, 'matched_at_rank': None, 'ndcg_score': 0.0, 'precision': 0.0, 'query': 'What is Aspirin?', 'recall': 0.0, 'reciprocal_rank': 0.0, 'retrieval_latency_ms': 101, 'top_results': [], 'total_latency_ms': 101, 'tree_contributed': False, 'vector_contributed': False}], 'precision_at_k': 0.0, 'recall_at_k': 0.0, 'run_id': '874c17f3-e705-4f20-a034-4320759f70bf', 'status': 'completed', 'total_queries': 1, 'tree_hit_rate': 0.0, 'vector_hit_rate': 0.0}"
+        },
+        {
+          "id": "3ae2807c-a062-4865-bb9a-a99206c6ee61",
+          "test_name": "API_SEARCH_CROSS_ENCODER",
+          "status": "PASS",
+          "latency_ms": 90.58800000000001,
+          "details": "{'results': [], 'distribution': {'graph': 0, 'total': 0, 'tree': 0, 'vector': 0}, 'weights_used': {'vector': 0.5, 'tree': 0.3, 'graph': 0.2}, 'mode_used': 'none', 'latency_ms': 89, 'query': 'Aspirin side effects'}"
+        }
+      ],
+      "finding_count": 0,
+      "summary": "E2E UI Gap Tests. Passed: 3, Failed: 0"
+    }
+  ]
+}

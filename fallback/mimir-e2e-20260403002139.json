@@ -1,0 +1,37 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-03T00:21:39.500568Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260403002139",
+      "started_at": "2026-04-03T00:21:39.500568Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "58158c48-b9ec-444f-adfa-6deeee0f8376",
+          "test_name": "API_EVAL_GENERATE_SET",
+          "status": "FAIL",
+          "latency_ms": 24.307,
+          "details": "HTTP Error 400: Bad Request"
+        },
+        {
+          "id": "80d9c881-188a-4e24-b7df-63109362562e",
+          "test_name": "API_EVAL_RUN_BATCH",
+          "status": "PASS",
+          "latency_ms": 106.938,
+          "details": "{'avg_answer_relevancy': None, 'avg_faithfulness': None, 'avg_latency_ms': 74.0, 'elapsed_ms': 105, 'graph_hit_rate': 0.0, 'hit_rate': 0.0, 'mrr': 0.0, 'ndcg': 0.0, 'per_query': [{'answer_relevancy': None, 'context_precision': None, 'faithfulness': None, 'generated_answer': None, 'generation_latency_ms': None, 'graph_contributed': False, 'hit': False, 'judge_reasoning': None, 'matched_at_rank': None, 'ndcg_score': 0.0, 'precision': 0.0, 'query': 'What is Aspirin?', 'recall': 0.0, 'reciprocal_rank': 0.0, 'retrieval_latency_ms': 74, 'top_results': [], 'total_latency_ms': 74, 'tree_contributed': False, 'vector_contributed': False}], 'precision_at_k': 0.0, 'recall_at_k': 0.0, 'run_id': '905d8fcb-d107-404a-b6a6-26ff825edaa3', 'status': 'completed', 'total_queries': 1, 'tree_hit_rate': 0.0, 'vector_hit_rate': 0.0}"
+        },
+        {
+          "id": "489809cf-45b5-40a7-abea-3a672db86174",
+          "test_name": "API_SEARCH_CROSS_ENCODER",
+          "status": "PASS",
+          "latency_ms": 91.007,
+          "details": "{'results': [], 'distribution': {'graph': 0, 'total': 0, 'tree': 0, 'vector': 0}, 'weights_used': {'vector': 0.5, 'tree': 0.3, 'graph': 0.2}, 'mode_used': 'none', 'latency_ms': 89, 'query': 'Aspirin side effects'}"
+        }
+      ],
+      "finding_count": 1,
+      "summary": "E2E UI Gap Tests. Passed: 2, Failed: 1"
+    }
+  ]
+}

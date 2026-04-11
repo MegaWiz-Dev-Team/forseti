@@ -1,0 +1,37 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-03T02:54:08.268677Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260403025408",
+      "started_at": "2026-04-03T02:54:08.268677Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "a2f0316a-ed4c-44e2-8808-a4bd64105e2a",
+          "test_name": "EVAL_EDGE_EMPTY_SET",
+          "status": "FAIL",
+          "latency_ms": 34.527,
+          "details": "{'avg_answer_relevancy': None, 'avg_faithfulness': None, 'avg_latency_ms': None, 'elapsed_ms': 17, 'graph_hit_rate': 0.0, 'hit_rate': None, 'mrr': None, 'ndcg': None, 'per_query': [], 'precision_at_k': None, 'recall_at_k': None, 'run_id': 'c2810f63-1c86-45d0-9836-472127df0da4', 'status': 'completed', 'total_queries': 0, 'tree_hit_rate': 0.0, 'vector_hit_rate': 0.0}"
+        },
+        {
+          "id": "3375e2f9-a6c6-441b-a424-451da16b3e7d",
+          "test_name": "EVAL_EDGE_MISSING_QUERY",
+          "status": "PASS",
+          "latency_ms": 1.302,
+          "details": "HTTP Error 422: Unprocessable Entity"
+        },
+        {
+          "id": "15d1e505-8ad8-4111-937b-ebc76d4e10fa",
+          "test_name": "EVAL_EDGE_INVALID_WEIGHTS",
+          "status": "PASS",
+          "latency_ms": 132.20100000000002,
+          "details": "{'avg_answer_relevancy': None, 'avg_faithfulness': None, 'avg_latency_ms': 107.0, 'elapsed_ms': 131, 'graph_hit_rate': 0.0, 'hit_rate': 0.0, 'mrr': 0.0, 'ndcg': 0.0, 'per_query': [{'answer_relevancy': None, 'context_precision': None, 'faithfulness': None, 'generated_answer': '', 'generation_latency_ms': 23, 'graph_contributed': False, 'hit': False, 'judge_reasoning': 'Empty answer', 'matched_at_rank': None, 'ndcg_score': 0.0, 'precision': 0.0, 'query': 'test', 'recall': 0.0, 'reciprocal_rank': 0.0, 'retrieval_latency_ms': 84, 'top_results': [], 'total_latency_ms': 107, 'tree_contributed': False, 'vector_contributed': False}], 'precision_at_k': 0.0, 'recall_at_k': 0.0, 'run_id': '81fb1041-f26b-4f7f-8519-594855647ebe', 'status': 'completed', 'total_queries': 1, 'tree_hit_rate': 0.0, 'vector_hit_rate': 0.0}"
+        }
+      ],
+      "finding_count": 1,
+      "summary": "E2E UI Gap Tests. Passed: 2, Failed: 1"
+    }
+  ]
+}

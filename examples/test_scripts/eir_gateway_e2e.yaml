@@ -277,3 +277,26 @@ scenarios:
     path: "/healthz"
     expected_status: 200
     tags: [security, rate-limit]
+
+  # ═══════════════════════════════════════
+  # 10. Sprint 1 Context Router
+  # ═══════════════════════════════════════
+
+  - name: "TC_EIR_31 — Context Webhook OpenEMR Event (Valid)"
+    method: POST
+    path: "/v1/webhooks/openemr"
+    body:
+      event: "patient.opened"
+      data:
+        patient_id: "12345"
+    expected_status: 200
+    tags: [webhook, sprint1]
+
+  - name: "TC_EIR_32 — Context Webhook OpenEMR Event (Invalid Event)"
+    method: POST
+    path: "/v1/webhooks/openemr"
+    body:
+      event: "some.random.event"
+      data: {}
+    expected_status: 400
+    tags: [webhook, sprint1, negative]

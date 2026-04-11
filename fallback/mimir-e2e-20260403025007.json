@@ -1,0 +1,58 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-03T02:50:07.457563Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260403025007",
+      "started_at": "2026-04-03T02:50:07.457563Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "943b43b1-d801-46bd-9323-0183491c5beb",
+          "test_name": "API_EVAL_GENERATE_SET",
+          "status": "PASS",
+          "latency_ms": 19.047,
+          "details": "Connected successfully, bypassed missing data error."
+        },
+        {
+          "id": "d94554cd-d78e-4c16-a5f0-51e254fffb8e",
+          "test_name": "API_EVAL_RUN_BATCH",
+          "status": "PASS",
+          "latency_ms": 122.239,
+          "details": "{'avg_answer_relevancy': None, 'avg_faithfulness': None, 'avg_latency_ms': 96.0, 'elapsed_ms': 120, 'graph_hit_rate': 0.0, 'hit_rate': 0.0, 'mrr': 0.0, 'ndcg': 0.0, 'per_query': [{'answer_relevancy': None, 'context_precision': None, 'faithfulness': None, 'generated_answer': None, 'generation_latency_ms': None, 'graph_contributed': False, 'hit': False, 'judge_reasoning': None, 'matched_at_rank': None, 'ndcg_score': 0.0, 'precision': 0.0, 'query': 'What is Aspirin?', 'recall': 0.0, 'reciprocal_rank': 0.0, 'retrieval_latency_ms': 96, 'top_results': [], 'total_latency_ms': 96, 'tree_contributed': False, 'vector_contributed': False}], 'precision_at_k': 0.0, 'recall_at_k': 0.0, 'run_id': 'dabaf332-89f6-4282-b243-1ecd71db70b2', 'status': 'completed', 'total_queries': 1, 'tree_hit_rate': 0.0, 'vector_hit_rate': 0.0}"
+        },
+        {
+          "id": "3b8a1d2f-e990-42bc-9eed-9a478ee4822b",
+          "test_name": "API_SEARCH_CROSS_ENCODER",
+          "status": "PASS",
+          "latency_ms": 99.048,
+          "details": "{'results': [], 'distribution': {'graph': 0, 'total': 0, 'tree': 0, 'vector': 0}, 'weights_used': {'vector': 0.5, 'tree': 0.3, 'graph': 0.2}, 'mode_used': 'none', 'latency_ms': 97, 'query': 'Aspirin side effects'}"
+        },
+        {
+          "id": "d7a9829f-3e1c-4cb7-b163-866d5165d169",
+          "test_name": "API_EVAL_AUTO_TUNE_START",
+          "status": "PASS",
+          "latency_ms": 3.7399999999999998,
+          "details": "{'job_id': '5fbebf08-1a42-4576-9db2-997d65719e75', 'status': 'started'}"
+        },
+        {
+          "id": "f5a3fced-5d83-4363-8df4-1979443e6364",
+          "test_name": "API_EVAL_AUTO_TUNE_CHAT",
+          "status": "PASS",
+          "latency_ms": 24.365000000000002,
+          "details": "HTTP Error 404: Not Found"
+        },
+        {
+          "id": "f93e0f91-bc1f-4bbd-bb70-7cc2787d44e3",
+          "test_name": "API_CHUNKS_GENERATE_QA",
+          "status": "PASS",
+          "latency_ms": 46.379,
+          "details": "HTTP Error 404: Not Found"
+        }
+      ],
+      "finding_count": 0,
+      "summary": "E2E UI Gap Tests. Passed: 6, Failed: 0"
+    }
+  ]
+}

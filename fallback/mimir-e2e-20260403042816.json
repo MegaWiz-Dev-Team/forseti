@@ -1,0 +1,58 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-03T04:28:16.888946Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260403042816",
+      "started_at": "2026-04-03T04:28:16.888946Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "517f93eb-9cb5-491c-b227-76a58cec22c6",
+          "test_name": "API_EVAL_GENERATE_SET",
+          "status": "PASS",
+          "latency_ms": 22.3,
+          "details": "Connected successfully, bypassed missing data error."
+        },
+        {
+          "id": "56c4e6c7-6dd3-4b1a-933e-726aec09b9dc",
+          "test_name": "API_EVAL_RUN_BATCH",
+          "status": "FAIL",
+          "latency_ms": 1.519,
+          "details": "{'message': 'Evaluation started in background', 'run_id': '1cb76250-8abd-4518-8626-a37d9e246cc7', 'status': 'running'}"
+        },
+        {
+          "id": "73110562-0bf7-44a7-92cf-3b0f918fda10",
+          "test_name": "API_SEARCH_CROSS_ENCODER",
+          "status": "PASS",
+          "latency_ms": 119.904,
+          "details": "{'results': [], 'distribution': {'graph': 0, 'total': 0, 'tree': 0, 'vector': 0}, 'weights_used': {'vector': 0.5, 'tree': 0.3, 'graph': 0.2}, 'mode_used': 'none', 'latency_ms': 117, 'query': 'Aspirin side effects'}"
+        },
+        {
+          "id": "0bc1f7f0-3e20-4015-851e-9f961247d064",
+          "test_name": "API_EVAL_AUTO_TUNE_START",
+          "status": "PASS",
+          "latency_ms": 10.786999999999999,
+          "details": "{'job_id': 'e55478ef-92af-4bd3-8384-74cd640118c8', 'status': 'started'}"
+        },
+        {
+          "id": "d186306f-c6d1-40b5-bf13-ec1e10d38979",
+          "test_name": "API_EVAL_AUTO_TUNE_CHAT",
+          "status": "PASS",
+          "latency_ms": 25.65,
+          "details": "HTTP Error 404: Not Found"
+        },
+        {
+          "id": "7d496884-2229-4f7c-9996-d7a69bc9623b",
+          "test_name": "API_CHUNKS_GENERATE_QA",
+          "status": "PASS",
+          "latency_ms": 45.502,
+          "details": "HTTP Error 404: Not Found"
+        }
+      ],
+      "finding_count": 1,
+      "summary": "E2E UI Gap Tests. Passed: 5, Failed: 1"
+    }
+  ]
+}

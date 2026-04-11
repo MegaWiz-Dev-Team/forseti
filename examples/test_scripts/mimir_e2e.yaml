@@ -1,0 +1,34 @@
+name: "Mimir Core API E2E"
+base_url: "http://localhost:30000"
+phase: SIT
+
+metadata:
+  project: mimir-api
+  version: "1.0.0"
+  sprint: "32"
+  description: "E2E testing for Mimir backend routes"
+
+scenarios:
+  - name: "TC_MIMIR_01 — List Active Models"
+    method: GET
+    path: "/api/v1/models"
+    expected_status: 200
+    tags: [models, smoke]
+
+  - name: "TC_MIMIR_02 — List Tenants"
+    method: GET
+    path: "/api/v1/tenants"
+    expected_status: 200
+    tags: [tenants, smoke]
+
+  - name: "TC_MIMIR_03 — Pull Model (Bad Request empty payload)"
+    method: POST
+    path: "/api/v1/config/models/pull"
+    expected_status: 400
+    tags: [models, negative]
+    
+  - name: "TC_MIMIR_04 — List Evaluators (eval-sets)"
+    method: GET
+    path: "/api/v1/search/benchmark/eval-sets"
+    expected_status: 200
+    tags: [evals, smoke]

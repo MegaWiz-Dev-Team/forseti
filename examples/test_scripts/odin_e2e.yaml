@@ -1,0 +1,15 @@
+name: "Odin Service E2E"
+base_url: "http://localhost:8800"
+phase: SIT
+
+metadata:
+  project: odin-api
+  version: "1.0.0"
+  description: "Basic E2E testing for Odin API routes"
+
+scenarios:
+  - name: "TC_ODIN_01 — Health Check"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]

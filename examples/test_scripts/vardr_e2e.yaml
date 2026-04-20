@@ -1,0 +1,15 @@
+name: "Vardr Service E2E"
+base_url: "http://localhost:9090"
+phase: SIT
+
+metadata:
+  project: vardr-api
+  version: "1.0.0"
+  description: "Basic E2E testing for Vardr API routes"
+
+scenarios:
+  - name: "TC_VARDR_01 — Health Check"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]

@@ -47,10 +47,14 @@ async def run_project(name: str, config, db: ResultsDB) -> dict:
     yaml_path = str(ROOT / config.test_script)
     report = await orch.run_all(yaml_path)
 
+    if "skipped" in report and report["skipped"]:
+        print(f"\n⏭️ SKIPPED — {report.get('reason', 'Unknown reason')}")
+        return report
+
     print(f"\n{report['summary']}")
-    print(f"   ISO Report: {report['iso_report_path']}")
-    print(f"   SQLite Run ID: {report['run_id']}")
-    if report["github_issue"]:
+    print(f"   ISO Report: {report.get('iso_report_path', 'N/A')}")
+    print(f"   SQLite Run ID: {report.get('run_id', 'N/A')}")
+    if report.get("github_issue"):
         title, _ = report["github_issue"]
         print(f"   GitHub Issue: {title}")
     else:

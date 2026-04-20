@@ -1,0 +1,15 @@
+name: "Bifrost Service E2E"
+base_url: "http://localhost:8100"
+phase: SIT
+
+metadata:
+  project: bifrost-api
+  version: "1.0.0"
+  description: "Basic E2E testing for Bifrost API routes"
+
+scenarios:
+  - name: "TC_BIFROST_01 — Health Check"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]

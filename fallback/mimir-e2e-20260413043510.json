@@ -1,0 +1,72 @@
+{
+  "source": "mimir_e2e_tests",
+  "type": "e2e_ui_gaps",
+  "timestamp": "2026-04-13T04:35:10.699542Z",
+  "scans": [
+    {
+      "scan_id": "mimir-e2e-20260413043510",
+      "started_at": "2026-04-13T04:35:10.699542Z",
+      "status": "completed",
+      "findings": [
+        {
+          "id": "a16e5efc-b208-4ab5-9b6d-01289ac6b381",
+          "test_name": "API_EVAL_GENERATE_SET",
+          "status": "PASS",
+          "latency_ms": 29.38,
+          "details": "Connected successfully, bypassed missing data error."
+        },
+        {
+          "id": "8e8c23e0-7277-4699-bec0-854938b00e71",
+          "test_name": "API_EVAL_RUN_BATCH",
+          "status": "FAIL",
+          "latency_ms": 2.011,
+          "details": "{'message': 'Evaluation started in background', 'run_id': '4ebb8728-d358-439f-be00-fa8b8ed4dc38', 'status': 'running'}"
+        },
+        {
+          "id": "f4da839b-0a77-4605-9fa3-51d73cb0c4b0",
+          "test_name": "API_SEARCH_CROSS_ENCODER",
+          "status": "PASS",
+          "latency_ms": 234.66699999999997,
+          "details": "{'results': [], 'distribution': {'graph': 0, 'total': 0, 'tree': 0, 'vector': 0}, 'weights_used': {'vector': 0.5, 'tree': 0.3, 'graph': 0.2}, 'mode_used': 'none', 'latency_ms': 232, 'query': 'Aspirin side effects'}"
+        },
+        {
+          "id": "22025795-929e-4b00-9722-c61ab8296216",
+          "test_name": "API_EVAL_AUTO_TUNE_START",
+          "status": "PASS",
+          "latency_ms": 9.906,
+          "details": "{'job_id': 'b08d0917-cc10-4e01-a418-6d1e73afee88', 'status': 'started'}"
+        },
+        {
+          "id": "02ddea67-8b2f-4d94-afda-c5f92ab87d52",
+          "test_name": "API_EVAL_AUTO_TUNE_CHAT",
+          "status": "PASS",
+          "latency_ms": 28.227,
+          "details": "HTTP Error 404: Not Found"
+        },
+        {
+          "id": "45ff8361-1147-4019-a941-df58d2e03952",
+          "test_name": "API_CHUNKS_GENERATE_QA",
+          "status": "PASS",
+          "latency_ms": 55.64,
+          "details": "HTTP Error 404: Not Found"
+        },
+        {
+          "id": "21341ae2-d49c-4a2c-a49c-b603d3283b99",
+          "test_name": "API_DATASET_DEDUPLICATION",
+          "status": "PASS",
+          "latency_ms": 1.221,
+          "details": "HTTP Error 400: Bad Request"
+        },
+        {
+          "id": "654aa7b9-72ce-4231-beeb-5166193c0d55",
+          "test_name": "API_EVAL_RUN_EXPORT",
+          "status": "FAIL",
+          "latency_ms": 0.955,
+          "details": "Export endpoint available."
+        }
+      ],
+      "finding_count": 2,
+      "summary": "E2E UI Gap Tests. Passed: 6, Failed: 2"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+name: "Wazuh Service E2E"
+base_url: "http://localhost:55000"
+phase: SIT
+
+metadata:
+  project: wazuh-api
+  version: "1.0.0"
+  description: "Basic E2E testing for Wazuh API routes"
+
+scenarios:
+  - name: "TC_WAZUH_01 — Health Check"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]

@@ -1,0 +1,15 @@
+name: "Mjolnir Service E2E"
+base_url: "http://localhost:8700"
+phase: SIT
+
+metadata:
+  project: mjolnir-api
+  version: "1.0.0"
+  description: "Basic E2E testing for Mjolnir API routes"
+
+scenarios:
+  - name: "TC_MJOLNIR_01 — Health Check"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]

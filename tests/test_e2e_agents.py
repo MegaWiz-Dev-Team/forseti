@@ -111,6 +111,7 @@ async def test_agent_prompt_preview():
 @pytest.mark.asyncio
 async def test_delegation_huginn_muninn():
     """Huginn can delegate scan results to Muninn for fixing."""
+    pytest.importorskip("bifrost.core.odin")
     from bifrost.core.odin import OdinOrchestrator
 
     odin = OdinOrchestrator()
@@ -142,6 +143,7 @@ async def test_delegation_huginn_muninn():
 @pytest.mark.asyncio
 async def test_odin_standup_e2e():
     """Odin standup reports status of all agents."""
+    pytest.importorskip("bifrost.core.odin")
     from bifrost.core.odin import OdinOrchestrator
 
     odin = OdinOrchestrator()

@@ -1,0 +1,72 @@
+name: "Syn OCR API E2E"
+base_url: "http://localhost:30002"
+phase: SIT
+
+metadata:
+  project: syn-api
+  version: "0.2.0"
+  sprint: "50"
+  description: "E2E smoke tests for Syn 3-tier OCR API (Sprint 50 — Syn S1)"
+
+scenarios:
+  - name: "TC_SYN_01 — Liveness"
+    method: GET
+    path: "/health"
+    expected_status: 200
+    tags: [health, smoke]
+
+  - name: "TC_SYN_02 — Engine Health (per-tier status)"
+    method: GET
+    path: "/api/v1/syn/ocr/health"
+    expected_status: 200
+    tags: [health, engines, smoke]
+
+  - name: "TC_SYN_03 — Default Tenant Policy"
+    method: GET
+    path: "/api/v1/syn/ocr/policy"
+    expected_status: 200
+    tags: [policy, tenant, smoke]
+
+  - name: "TC_SYN_04 — Insurance Tenant Policy"
+    method: GET
+    path: "/api/v1/syn/ocr/policy"
+    headers:
+      X-Tenant-Id: "asgard_insurance"
+    expected_status: 200
+    tags: [policy, tenant, insurance]
+
+  - name: "TC_SYN_05 — Recent Documents (audit list)"
+    method: GET
+    path: "/api/v1/syn/ocr/documents"
+    expected_status: 200
+    tags: [documents, audit, smoke]
+
+  - name: "TC_SYN_06 — Curator Review Queue"
+    method: GET
+    path: "/api/v1/syn/ocr/review-queue"
+    expected_status: 200
+    tags: [review, curator, smoke]
+
+  - name: "TC_SYN_07 — Document Detail (404 for missing UUID)"
+    method: GET
+    path: "/api/v1/syn/ocr/documents/00000000-0000-0000-0000-000000000000"
+    expected_status: 404
+    tags: [documents, negative]
+
+  - name: "TC_SYN_08 — Extract Rejects Empty Body"
+    method: POST
+    path: "/api/v1/syn/ocr/extract-json"
+    body:
+      image_base64: ""
+    expected_status: 400
+    tags: [extract, negative, validation]
+
+  # PATCH is intentionally not exercised here — Forseti's BaseApiClient
+  # currently only supports GET/POST/PUT/DELETE. The PATCH /policy route
+  # is covered by Rust unit tests + manual /admin/skuggi flows.
+
+  - name: "TC_SYN_09 — Root Test Console Renders"
+    method: GET
+    path: "/"
+    expected_status: 200
+    tags: [console, smoke]

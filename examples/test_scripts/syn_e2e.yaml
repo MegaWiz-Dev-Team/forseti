@@ -27,13 +27,9 @@ scenarios:
     expected_status: 200
     tags: [policy, tenant, smoke]
 
-  - name: "TC_SYN_04 — Insurance Tenant Policy"
-    method: GET
-    path: "/api/v1/syn/ocr/policy"
-    headers:
-      X-Tenant-Id: "asgard_insurance"
-    expected_status: 200
-    tags: [policy, tenant, insurance]
+  # TC_SYN_04 (Insurance Tenant Policy) is deferred to Sprint 52 — the
+  # `asgard_insurance` tenant_configs row is part of INS-01 seed work.
+  # Re-enable when 03_16_Asgard_Insurance_Sprint_Plan ships.
 
   - name: "TC_SYN_05 — Recent Documents (audit list)"
     method: GET

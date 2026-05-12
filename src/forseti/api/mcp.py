@@ -52,8 +52,7 @@ async def get_recent_test_runs(limit: int = 5) -> str:
     """Get the recent test run results from the Forseti dashboard SQLite database."""
     from forseti.db.results_db import ResultsDB
     import os
-    import json
-    
+
     db_path = os.environ.get("DB_PATH", "forseti_results.db")
     db = ResultsDB(db_path=db_path)
     runs = db.get_runs(limit=limit)

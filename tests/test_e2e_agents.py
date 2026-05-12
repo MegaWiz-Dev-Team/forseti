@@ -6,9 +6,6 @@ Run: cd /Users/mimir/Developer/Forseti && python -m pytest tests/test_e2e_agents
 """
 
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-
-import httpx
 
 
 # ══════════════════════════════════════════
